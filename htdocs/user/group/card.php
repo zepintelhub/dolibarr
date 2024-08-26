@@ -166,10 +166,35 @@ if (empty($reshook)) {
 					$action = "create"; // Go back to create page
 				}
 			}
+
+			 // Gestion de l'upload de fichier PDF
+			 if (!empty($_FILES['pdf_file']['name'])) {
+				$upload_dir = $conf->user->dir_output.'/usergroups';
+				$file_name = dol_sanitizeFileName($_FILES['pdf_file']['name']);
+				$file_path = $upload_dir.'/'.$file_name;
+	
+				if (dol_move_uploaded_file($_FILES['pdf_file']['tmp_name'], $file_path)) {
+					// Sauvegarder le chemin du fichier dans la base de données
+					$object->array_options['options_pdf_file'] = $file_name;
+				}
+
+
+
+
 		} else {
 			$langs->load("errors");
 			setEventMessages($langs->trans('ErrorForbidden'), null, 'errors');
 		}
+
+
+
+		/////pdf
+
+
+
+
+
+
 	}
 
 	// Add/Remove user into group
@@ -279,6 +304,21 @@ if ($action == 'create') {
 
 	print '<table class="border centpercent tableforfieldcreate">';
 
+
+
+
+	////
+	print '<tr>';
+    print '<td>'.$langs->trans("PDF File").'</td>';
+    print '<td><input type="file" name="pdf_file" accept="application/pdf"></td>';
+    print '</tr>';
+
+
+
+
+
+
+	
 	// Multicompany
 	if (isModEnabled('multicompany') && is_object($mc)) {
 		if (!getDolGlobalString('MULTICOMPANY_TRANSVERSE_MODE') && $conf->entity == 1 && $user->admin && !$user->entity) {
@@ -290,6 +330,21 @@ if ($action == 'create') {
 		}
 	}
 
+
+
+	print '<tr>';
+    print '<td>'.$langs->trans("CNIB").'</td>';
+    print '<td><input type="file" name="pdf_file" accept="application/pdf"></td>';
+    print '</tr>';
+
+
+
+
+
+
+
+
+
 	// Common attributes
 	include DOL_DOCUMENT_ROOT.'/core/tpl/commonfields_add.tpl.php';
 
@@ -299,6 +354,11 @@ if ($action == 'create') {
 	print "</table>\n";
 
 	print dol_get_fiche_end();
+
+	print '<tr>';
+    print '<td>'.$langs->trans("PDF File").'</td>';
+    print '<td><input type="file" name="pdf_file" accept="application/pdf"></td>';
+    print '</tr>';
 
 	print '<div class="center">';
 	print '<input class="button" name="add" value="'.$langs->trans("CreateGroup").'" type="submit">';
@@ -511,6 +571,15 @@ if ($action == 'create') {
 			$somethingshown = $formactions->showactions($object, 'usergroup', $socid, 1);*/
 
 			print '</div></div>';
+
+//////pdf
+
+			$file_path = $conf->user->dir_output.'/usergroups/'.$object->array_options['options_pdf_file'];
+			if (file_exists($file_path)) {
+				print '<tr><td>'.$langs->trans("PDF File").'</td>';
+				print '<td><a href="'.DOL_URL_ROOT.'/document.php?modulepart=usergroups&file='.$object->array_options['options_pdf_file'].'">'.$langs->trans("Download PDF").'</a></td>';
+				print '</tr>';
+			}
 		}
 
 		/*
@@ -559,3 +628,4 @@ if ($action == 'create') {
 // End of page
 llxFooter();
 $db->close();
+}
