@@ -307,12 +307,7 @@ if ($action == 'create') {
 
 
 
-	////
-	print '<tr>';
-    print '<td>'.$langs->trans("PDF File").'</td>';
-    print '<td><input type="file" name="pdf_file" accept="application/pdf"></td>';
-    print '</tr>';
-
+	
 
 
 
@@ -323,7 +318,7 @@ if ($action == 'create') {
 	if (isModEnabled('multicompany') && is_object($mc)) {
 		if (!getDolGlobalString('MULTICOMPANY_TRANSVERSE_MODE') && $conf->entity == 1 && $user->admin && !$user->entity) {
 			print "<tr>".'<td class="tdtop">'.$langs->trans("Entity").'</td>';
-			print "<td>".$mc->select_entities($conf->entity);
+	        print "<td>".$mc->select_entities($conf->entity);
 			print "</td></tr>\n";
 		} else {
 			print '<input type="hidden" name="entity" value="'.$conf->entity.'" />';
@@ -332,11 +327,7 @@ if ($action == 'create') {
 
 
 
-	print '<tr>';
-    print '<td>'.$langs->trans("CNIB").'</td>';
-    print '<td><input type="file" name="pdf_file" accept="application/pdf"></td>';
-    print '</tr>';
-
+	
 
 
 
@@ -351,14 +342,55 @@ if ($action == 'create') {
 	// Other attributes
 	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_add.tpl.php';
 
+
+
+
+
+
+	// print '<tr><td class="titlefield">'.$langs->trans("GroupType").'</td>';
+	// print '<td>';
+	// print '<select name="group_type">';
+	// print '<option value="Association">'.$langs->trans("Association").'</option>';
+	// print '<option value="Eglise">'.$langs->trans("Eglise").'</option>';
+	// print '<option value="Amicale">'.$langs->trans("Amicale").'</option>';
+	// print '<option value="Mosquee">'.$langs->trans("Mosquee").'</option>';
+	// print '<option value="Mutuelle">'.$langs->trans("Mutuelle").'</option>';
+	// print '</select>';
+	// print '</td></tr>';
+
+	// print '<tr><td class="titlefield">'.$langs->trans("Description").'</td>';
+	// print '<td><textarea name="description"></textarea></td></tr>';
+
+	// print '<tr><td class="titlefield">'.$langs->trans("NumberOfMembers").'</td>';
+	// print '<td>';
+	// print '<select name="number_of_members">';
+	// print '<option value="0-50">0-50</option>';
+	// print '<option value="50-100">50-100</option>';
+	// // Ajoutez d'autres plages si nécessaire
+	// print '</select>';
+	// print '</td></tr>';
+
+
+///////////pdf
+
+	print '<tr>';
+	print '<td>'.$langs->trans("Recipissé").'</td>';
+	print '<td><input type="file" name="pdf_file" accept="application/pdf"></td>';
+	print '</tr>';
+
+	print '<tr>';
+    print '<td>'.$langs->trans("CNIB").'</td>';
+    print '<td><input type="file" name="pdf_file" accept="application/pdf"></td>';
+    print '</tr>';
+
+
+
+
+
 	print "</table>\n";
 
 	print dol_get_fiche_end();
 
-	print '<tr>';
-    print '<td>'.$langs->trans("PDF File").'</td>';
-    print '<td><input type="file" name="pdf_file" accept="application/pdf"></td>';
-    print '</tr>';
 
 	print '<div class="center">';
 	print '<input class="button" name="add" value="'.$langs->trans("CreateGroup").'" type="submit">';
