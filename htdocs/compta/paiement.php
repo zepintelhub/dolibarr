@@ -805,12 +805,13 @@ if ($action == 'create' || $action == 'confirm_paiement' || $action == 'add_paie
 
 					if ($action != 'add_paiement') {
 						if (!empty($conf->use_javascript_ajax)) {
-							print img_picto("Auto fill", 'rightarrow', "class='AutoFillAmount' data-rowname='".$namef."' data-value='".($sign * (float) $remaintopay)."'");
+							print img_picto("Auto fill", 'rightarrow', "class='AutoFillAmount' data-rowname='".$namef."' data-value='".($sign * (float) $objp->total_ttc)."'");
 						}
-						print '<input type="text" class="maxwidth75 amount" id="'.$namef.'" name="'.$namef.'" value="'.dol_escape_htmltag(GETPOST($namef)).'">';
-						print '<input type="hidden" class="remain" name="'.$nameRemain.'" value="'.$remaintopay.'">';
+						print '<input type="text" class="maxwidth75 amount" disabled value="'.(string)$objp->total_ttc.'">';
+						print '<input type="text" class="maxwidth75 amount" hidden id="'.$namef.'" name="'.$namef.'" value="'.(string)$objp->total_ttc.'">';
+						print '<input type="hidden" class="remain" name="'.$nameRemain.'" value="'.$objp->total_ttc.'">';
 					} else {
-						print '<input type="text" class="maxwidth75" name="'.$namef.'_disabled" value="'.dol_escape_htmltag(GETPOST($namef)).'" disabled>';
+						print '<input type="text" disabled class="maxwidth75" name="'.$namef.'_disabled" value="'.dol_escape_htmltag(GETPOST($namef)).'" disabled>';
 						print '<input type="hidden" name="'.$namef.'" value="'.dol_escape_htmltag(GETPOST($namef)).'">';
 					}
 					print "</td>";

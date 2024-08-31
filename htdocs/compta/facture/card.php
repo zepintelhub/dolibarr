@@ -1096,6 +1096,7 @@ if (empty($reshook)) {
 				// Special properties of replacement invoice
 				$object->fk_facture_source = GETPOSTINT('fac_replacement');
 				$object->type              = Facture::TYPE_REPLACEMENT;
+				$object->status            = Facture::STATUS_VALIDATED;
 
 				$id = $object->createFromCurrent($user);
 				if ($id <= 0) {
