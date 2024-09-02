@@ -605,8 +605,8 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 		}
 
-		print '<a class="butAction" href="'.dol_buildpath('/caissealimentation/generaterecu.php?type=telechargement&', 1).'?id='.$object->id.'">Télécharger Reçu</a>';
-		print '<a target="_blank" class="butAction" href="'.dol_buildpath('/caissealimentation/generaterecu.php?type=impression&', 1).'?id='.$object->id.'">Imprimer Reçu</a>';
+		print '<a class="butAction" href="'.dol_buildpath('/caissealimentation/generaterecu.php?type=telechargement&', 1).'id='.$object->id.'">Télécharger Reçu</a>';
+		print '<a target="_blank" class="butAction" href="'.dol_buildpath('/caissealimentation/generaterecu.php?type=impression&', 1).'id='.$object->id.'">Imprimer Reçu</a>';
 
 		if (empty($reshook)) {
 			// Send
