@@ -330,54 +330,61 @@ class modCaisseAlimentation extends DolibarrModules
 		);
 		/* END MODULEBUILDER TOPMENU */
 
-		/* BEGIN MODULEBUILDER LEFTMENU OPERATION */
+
+
+
+				/* BEGIN MODULEBUILDER LEFTMENU OPERATION */
 		$this->menu[$r++]=array(
-			'fk_menu'=>'fk_mainmenu=caissealimentation',
-			'type'=>'left',
-			'titre'=>'Operation',
-			'prefix' => img_picto('', $this->picto, 'class="paddingright pictofixedwidth valignmiddle"'),
-			'mainmenu'=>'caissealimentation',
-			'leftmenu'=>'operation',
-			'url'=>'/caissealimentation/operation_list.php',
-			'langs'=>'caissealimentation@caissealimentation',
-			'position'=>1000+$r,
-			'enabled'=>'isModEnabled("caissealimentation")',
-			'perms'=>'$user->hasRight("caissealimentation", "operation", "read")',
-			'target'=>'',
-			'user'=>2,
-			'object'=>'Operation'
-		);
-		$this->menu[$r++]=array(
-			'fk_menu'=>'fk_mainmenu=caissealimentation,fk_leftmenu=operation',
-			'type'=>'left',
-			'titre'=>'List Operation',
-			'mainmenu'=>'caissealimentation',
-			'leftmenu'=>'caissealimentation_operation_list',
-			'url'=>'/caissealimentation/operation_list.php',
-			'langs'=>'caissealimentation@caissealimentation',
-			'position'=>1000+$r,
-			'enabled'=>'isModEnabled("caissealimentation")',
-			'perms'=>'$user->hasRight("caissealimentation", "operation", "read")',
-			'target'=>'',
-			'user'=>2,
-			'object'=>'Operation'
-        );
-		$this->menu[$r++]=array(
-			'fk_menu'=>'fk_mainmenu=caissealimentation,fk_leftmenu=operation',
-			'type'=>'left',
-			'titre'=>'New Operation',
-			'mainmenu'=>'caissealimentation',
-			'leftmenu'=>'caissealimentation_operation_new',
-			'url'=>'/caissealimentation/operation_card.php?action=create',
-			'langs'=>'caissealimentation@caissealimentation',
-			'position'=>1000+$r,
-			'enabled'=>'isModEnabled("caissealimentation")',
-			'perms'=>'$user->hasRight("caissealimentation", "operation", "write")',
-			'target'=>'',
-			'user'=>2,
-			'object'=>'Operation'
+			 'fk_menu' => 'fk_mainmenu=caissealimentation',
+			 'type' => 'left',
+			 'titre' => 'Operation',
+			 'mainmenu' => 'caissealimentation',
+			 'leftmenu' => 'operation',
+			 'url' => '/caissealimentation/operation_list.php',
+			 'langs' => 'caissealimentation@caissealimentation',
+			 'position' => 1000,
+			 'enabled' => 'isModEnabled(\'caissealimentation\')',
+			 'perms' => '$user->hasRight(\'caissealimentation\', \'operation\', \'read\')',
+			 'target' => '',
+			 'user' => 2,
+			 'object' => 'Operation',
 		);
 		/* END MODULEBUILDER LEFTMENU OPERATION */
+		/* BEGIN MODULEBUILDER LEFTMENU LISTE OPERATION */
+		$this->menu[$r++]=array(
+			 'fk_menu' => 'fk_mainmenu=caissealimentation,fk_leftmenu=operation',
+			 'type' => 'left',
+			 'titre' => 'Liste Operation',
+			 'mainmenu' => 'caissealimentation',
+			 'leftmenu' => 'caissealimentation_operation_list',
+			 'url' => '/caissealimentation/operation_list.php',
+			 'langs' => 'caissealimentation@caissealimentation',
+			 'position' => 1001,
+			 'enabled' => 'isModEnabled(\'caissealimentation\')',
+			 'perms' => '$user->hasRight(\'caissealimentation\', \'operation\', \'read\')',
+			 'target' => '',
+			 'user' => 2,
+			 'object' => '',
+		);
+		/* END MODULEBUILDER LEFTMENU LISTE OPERATION */
+		/* BEGIN MODULEBUILDER LEFTMENU NOUVELLE OPERATION */
+		$this->menu[$r++]=array(
+			 'fk_menu' => 'fk_mainmenu=caissealimentation,fk_leftmenu=operation',
+			 'type' => 'left',
+			 'titre' => 'Nouvelle Operation',
+			 'mainmenu' => 'caissealimentation',
+			 'leftmenu' => 'caissealimentation_operation_new',
+			 'url' => '/caissealimentation/operation_card.php?action=create',
+			 'langs' => 'caissealimentation@caissealimentation',
+			 'position' => 1000,
+			 'enabled' => 'isModEnabled(caissealimentation)',
+			 'perms' => '$user->hasRight(caissealimentation, operation, write)',
+			 'target' => '',
+			 'user' => 2,
+			 'object' => '',
+		);
+		/* END MODULEBUILDER LEFTMENU NOUVELLE OPERATION */
+
 		/* BEGIN MODULEBUILDER LEFTMENU MYOBJECT */
 		/*
 		$this->menu[$r++]=array(

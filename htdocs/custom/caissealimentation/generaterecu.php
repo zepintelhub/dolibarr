@@ -89,9 +89,9 @@ $pdf->MultiCell($width_right_col, 5, $client_text, 0, 'R', 0);
 // Espacement
 $pdf->Ln(15);
 
-$pdf->SetFont('', 'B', 14);
-$pdf->Cell(0, 10, "Produits", 0, 1, 'L');
-$pdf->Ln(5);
+// $pdf->SetFont('', 'B', 14);
+// $pdf->Cell(0, 10, "Produits", 0, 1, 'L');
+// $pdf->Ln(5);
 
 // En-tête du tableau
 $pdf->SetFont('', 'B', 12);
