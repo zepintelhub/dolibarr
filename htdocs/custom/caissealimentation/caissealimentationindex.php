@@ -257,7 +257,8 @@ $json_data = json_encode($data);
 $sql = "SELECT 
 			produit_id, YEAR(tms) AS annee, MONTH(tms) AS mois,
 			SUM(quantite) AS total_quantite, SUM(prix) AS total_prix
-		FROM " . MAIN_DB_PREFIX . "operation_produit 
+		FROM " . MAIN_DB_PREFIX . "operation_produit
+		WHERE YEAR(tms) = YEAR(NOW()) 
 		GROUP BY produit_id, annee, mois
 		ORDER BY produit_id, annee, mois";
 $resql = $db->query($sql);
@@ -279,11 +280,12 @@ if(sizeof($tableVente) > 0) foreach($tableVente as $item) {
 	}
 }
 
-//Requete statistique produit
+//Requete statistique client
 $sql = "SELECT o.fk_soc, YEAR(o.tms) AS annee, MONTH(o.tms) AS mois,
 			SUM(op.quantite) AS total_quantite, SUM(op.prix) AS total_prix 
 		FROM " . MAIN_DB_PREFIX . "operation_produit AS op
 		JOIN " . MAIN_DB_PREFIX . "caissealimentation_operation AS o ON o.rowid = op.operation_id
+		WHERE YEAR(op.tms) = YEAR(NOW()) 
 		GROUP BY fk_soc, annee, mois
 		ORDER BY fk_soc, annee, mois";
 $resql = $db->query($sql);
