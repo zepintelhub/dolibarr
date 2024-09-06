@@ -57,6 +57,8 @@ if (!$res) {
 }
 
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
+dol_include_once('/product/class/product.class.php');
+dol_include_once('/societe/class/societe.class.php'); 
 
 // Load translation files required by the page
 $langs->loadLangs(array("caissealimentation@caissealimentation"));
@@ -237,6 +239,192 @@ if (isModEnabled('caissealimentation') && $user->hasRight('caissealimentation', 
 */
 
 print '</div></div>';
+
+print '<script src="https://d3js.org/d3.v6.min.js"></script>';
+
+// Données d'exemple pour le graphique
+$data = [
+    ['month' => 'Jan', 'sales' => 1500],
+    ['month' => 'Feb', 'sales' => 2000],
+    ['month' => 'Mar', 'sales' => 3000],
+    // Ajoutez plus de données ici
+];
+
+// Encodez les données en JSON pour les utiliser avec D3.js
+$json_data = json_encode($data);
+
+//Requete statistique produit
+$sql = "SELECT 
+			produit_id, YEAR(tms) AS annee, MONTH(tms) AS mois,
+			SUM(quantite) AS total_quantite, SUM(prix) AS total_prix
+		FROM " . MAIN_DB_PREFIX . "operation_produit 
+		GROUP BY produit_id, annee, mois
+		ORDER BY produit_id, annee, mois";
+$resql = $db->query($sql);
+$colonneMois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+$tableVente = [];
+$dataVente = array_fill(0,12,0);
+if ($resql) {
+	while ($obj = $db->fetch_object($resql)) {
+		$produit = new Product($db);
+		$produit->fetch($obj->produit_id);
+		$tableVente[$obj->produit_id][0] = $produit->label;
+		$tableVente[$obj->produit_id][$obj->mois] = $obj->total_quantite * $obj->total_prix; 
+		$dataVente[$obj->mois-1] += $obj->total_quantite * $obj->total_prix; 
+	}
+}
+if(sizeof($tableVente) > 0) foreach($tableVente as $item) {
+	for($i = 0; $i <= 12; $i++) {
+		if(!array_key_exists($i, $item)) $item[$i] = 0;
+	}
+}
+
+//Requete statistique produit
+$sql = "SELECT o.fk_soc, YEAR(o.tms) AS annee, MONTH(o.tms) AS mois,
+			SUM(op.quantite) AS total_quantite, SUM(op.prix) AS total_prix 
+		FROM " . MAIN_DB_PREFIX . "operation_produit AS op
+		JOIN " . MAIN_DB_PREFIX . "caissealimentation_operation AS o ON o.rowid = op.operation_id
+		GROUP BY fk_soc, annee, mois
+		ORDER BY fk_soc, annee, mois";
+$resql = $db->query($sql);
+$tableClient = [];
+$dataClient = array_fill(0,12,0);
+if ($resql) {
+	while ($obj = $db->fetch_object($resql)) {
+		$client = new Societe($db);
+		$client->fetch($obj->fk_soc);
+		$tableClient[$obj->fk_soc][0] = $client->name;
+		$tableClient[$obj->fk_soc][$obj->mois] = $obj->total_quantite * $obj->total_prix; 
+		$dataClient[$obj->mois-1] += $obj->total_quantite * $obj->total_prix; 
+	}
+}
+if(sizeof($tableClient) > 0) foreach($tableClient as $item) {
+	for($i = 0; $i <= 12; $i++) {
+		if(!array_key_exists($i, $item)) $item[$i] = 0;
+	}
+}
+
+?>
+
+<style>
+	.container {
+		display: flex;
+		justify-content: space-between;
+	}
+	.column {
+		width: 48%;
+	}
+
+	@media (max-width: 768px) {
+		.container {
+			flex-direction: column;
+		}
+		.column {
+			width: 100%;
+			margin-bottom: 20px;
+		}
+	}
+</style>
+
+<div class="container">
+	<div class="column">
+		<h3>Statistique chiffre d'affaire produit</h3>
+		<canvas id="myChartProduit"></canvas>
+	</div>
+	<div class="column">
+		<h3>Statistique chiffre d'affaire client</h3>
+		<canvas id="myChartClient"></canvas>
+	</div>
+</div>
+
+<div class="container">
+	<div class="column">
+		<h3>Tableau des chiffres d'affaire produit</h3>
+		<table class="noborder noshadow" width="100%">
+            <tr class="liste_titre nodrag nodrop">
+				<th>Produit</th>
+				<?php foreach($colonneMois as $it) { ?>
+					<th><?php print $it; ?></th>
+				<?php } ?>
+            </tr>
+			<?php if(sizeof($tableVente) > 0) { foreach($tableVente as $item) { ?>
+				<?php if($item[0]) { ?><tr>
+					<?php for($i = 0; $i <= 12; $i++) { ?>
+						<td><?php if(array_key_exists($i, $item)) print $item[$i]; else print 0; ?></td>
+					<?php } ?>
+				</tr><?php } ?>
+			<?php } } ?>
+		</table>
+	</div>
+</div>
+
+<div class="container">
+	<div class="column">
+		<h3>Tableau des chiffres d'affaire client</h3>
+		<table class="noborder noshadow" width="100%">
+            <tr class="liste_titre nodrag nodrop">
+				<th>Client</th>
+				<?php foreach($colonneMois as $it) { ?>
+					<th><?php print $it; ?></th>
+				<?php } ?>
+            </tr>
+			<?php if(sizeof($tableClient) > 0) { foreach($tableClient as $item) { ?>
+				<tr>
+					<?php for($i = 0; $i <= 12; $i++) { ?>
+						<td><?php if(array_key_exists($i, $item)) print $item[$i]; else print 0; ?></td>
+					<?php } ?>
+				</tr>
+			<?php } } ?>
+		</table>
+	</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const ctxProduit = document.getElementById('myChartProduit');
+  const ctxClient = document.getElementById('myChartClient');
+
+   new Chart(ctxProduit, {
+     type: 'line',
+     data: {
+       labels: <?php print json_encode($colonneMois); ?>,
+       datasets: [{
+         label: '# Produit',
+         data: <?php print json_encode($dataVente); ?>,
+         borderWidth: 1
+       }]
+     },
+     options: {
+       scales: {
+         y: {
+           beginAtZero: true
+         }
+       }
+     }
+   });
+
+   new Chart(ctxClient, {
+     type: 'line',
+     data: {
+       labels: <?php print json_encode($colonneMois); ?>,
+       datasets: [{
+         label: '# Client',
+         data: <?php print json_encode($dataClient); ?>,
+         borderWidth: 1
+       }]
+     },
+     options: {
+       scales: {
+         y: {
+           beginAtZero: true
+         }
+       }
+     }
+   });
+</script>
+
+<?php
 
 // End of page
 llxFooter();

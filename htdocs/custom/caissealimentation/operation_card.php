@@ -289,6 +289,12 @@ $title = $langs->trans("Operation")." - ".$langs->trans('Card');
 if ($action == 'create') {
 	$title = $langs->trans("NewObject", $langs->transnoentitiesnoconv("Operation"));
 }
+
+if($action == 'payer') {
+	$object->validate = 1;
+	$object->update($user);
+}
+
 $help_url = '';
 
 llxHeader('', $title, $help_url, '', 0, 0, '', '', '', 'mod-caissealimentation page-card');
@@ -630,6 +636,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 					$langs->load("errors");
 					// print dolGetButtonAction($langs->trans("ErrorAddAtLeastOneLineFirst"), $langs->trans("Validate"), 'default', '#', '', 0);
 				}
+				print dolGetButtonAction('', 'Payer', 'default', $_SERVER['PHP_SELF'].'?id='.$object->id.'&action=payer&token='.newToken(), '', $permissiontoadd);
 			}
 
 			// Clone
