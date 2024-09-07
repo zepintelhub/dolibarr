@@ -306,6 +306,33 @@ if(sizeof($tableClient) > 0) foreach($tableClient as $item) {
 	}
 }
 
+//Requete statistique quantite produit
+$sql = "SELECT 
+			produit_id, YEAR(tms) AS annee,
+			SUM(quantite) AS total_quantite, SUM(prix) AS total_prix
+		FROM " . MAIN_DB_PREFIX . "operation_produit
+		WHERE YEAR(tms) = YEAR(NOW()) 
+		GROUP BY produit_id, annee
+		ORDER BY total_quantite DESC, annee DESC
+		LIMIT 10";
+$resql = $db->query($sql);
+$tableQuantite = [];
+$labelProduit = [];
+$dataQuantite = [];
+if ($resql) {
+	$i = 0;
+	while ($obj = $db->fetch_object($resql)) {
+		$produit = new Product($db);
+		$produit->fetch($obj->produit_id);
+		$tableQuantite[$i]['produit'] = $produit->label;
+		$tableQuantite[$i]['quantite'] = $obj->total_quantite;
+		$tableQuantite[$i]['prix'] = $obj->total_prix;
+		$dataQuantite[$i] = $obj->total_quantite;
+		$labelProduit[$i] = $produit->label;
+		$i++;
+	}
+}
+
 ?>
 
 <style>
@@ -334,14 +361,14 @@ if(sizeof($tableClient) > 0) foreach($tableClient as $item) {
 		<canvas id="myChartProduit"></canvas>
 	</div>
 	<div class="column">
-		<h3>Statistique chiffre d'affaire client</h3>
-		<canvas id="myChartClient"></canvas>
+		<h3>Statistique somme quantité produit</h3>
+		<canvas id="myChartQuantite"></canvas>
 	</div>
 </div>
 
 <div class="container">
 	<div class="column">
-		<h3>Tableau des chiffres d'affaire produit</h3>
+		<h3>Tableau des chiffres d'affaire par produit</h3>
 		<table class="noborder noshadow" width="100%">
             <tr class="liste_titre nodrag nodrop">
 				<th>Produit</th>
@@ -362,19 +389,39 @@ if(sizeof($tableClient) > 0) foreach($tableClient as $item) {
 
 <div class="container">
 	<div class="column">
-		<h3>Tableau des chiffres d'affaire client</h3>
+		<h3>Tableau des chiffres d'affaire par client</h3>
 		<table class="noborder noshadow" width="100%">
             <tr class="liste_titre nodrag nodrop">
-				<th>Client</th>
+				<th>Produit</th>
 				<?php foreach($colonneMois as $it) { ?>
 					<th><?php print $it; ?></th>
 				<?php } ?>
             </tr>
 			<?php if(sizeof($tableClient) > 0) { foreach($tableClient as $item) { ?>
-				<tr>
+				<?php if($item[0]) { ?><tr>
 					<?php for($i = 0; $i <= 12; $i++) { ?>
 						<td><?php if(array_key_exists($i, $item)) print $item[$i]; else print 0; ?></td>
 					<?php } ?>
+				</tr><?php } ?>
+			<?php } } ?>
+		</table>
+	</div>
+</div>
+
+<div class="container">
+	<div class="column">
+		<h3>Tableau des produits les plus vendus</h3>
+		<table class="noborder noshadow" width="100%">
+            <tr class="liste_titre nodrag nodrop">
+				<th>Produit</th>
+				<th>Total Quantité</th>
+				<th>Total prix</th>
+            </tr>
+			<?php if(sizeof($tableQuantite) > 0) { foreach($tableQuantite as $item) { ?>
+				<tr>
+					<td><?php print $item['produit']; ?></td>
+					<td><?php print $item['quantite']; ?></td>
+					<td><?php print $item['prix']; ?></td>
 				</tr>
 			<?php } } ?>
 		</table>
@@ -385,7 +432,7 @@ if(sizeof($tableClient) > 0) foreach($tableClient as $item) {
 
 <script>
   const ctxProduit = document.getElementById('myChartProduit');
-  const ctxClient = document.getElementById('myChartClient');
+  const ctxQuantite = document.getElementById('myChartQuantite');
 
    new Chart(ctxProduit, {
      type: 'line',
@@ -406,15 +453,15 @@ if(sizeof($tableClient) > 0) foreach($tableClient as $item) {
      }
    });
 
-   new Chart(ctxClient, {
-     type: 'line',
+   new Chart(ctxQuantite, {
+     type: 'bar',
      data: {
-       labels: <?php print json_encode($colonneMois); ?>,
-       datasets: [{
-         label: '# Client',
-         data: <?php print json_encode($dataClient); ?>,
-         borderWidth: 1
-       }]
+		labels: <?php print json_encode($labelProduit); ?>,
+		datasets: [{
+			label: '# Total Quantité Produit',
+			data: <?php print json_encode($dataQuantite); ?>,
+			borderWidth: 1
+		}]
      },
      options: {
        scales: {
