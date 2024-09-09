@@ -326,7 +326,7 @@ if ($resql) {
 		$produit->fetch($obj->produit_id);
 		$tableQuantite[$i]['produit'] = $produit->label;
 		$tableQuantite[$i]['quantite'] = $obj->total_quantite;
-		$tableQuantite[$i]['prix'] = $obj->total_prix;
+		$tableQuantite[$i]['prix'] = $obj->total_quantite * $obj->total_prix;
 		$dataQuantite[$i] = $obj->total_quantite;
 		$labelProduit[$i] = $produit->label;
 		$i++;
@@ -441,6 +441,8 @@ if ($resql) {
        datasets: [{
          label: '# Produit',
          data: <?php print json_encode($dataVente); ?>,
+		 borderColor: '#86423c',
+		 backgroundColor: '#bb836a',
          borderWidth: 1
        }]
      },
@@ -460,6 +462,8 @@ if ($resql) {
 		datasets: [{
 			label: '# Total Quantité Produit',
 			data: <?php print json_encode($dataQuantite); ?>,
+			borderColor: '#86423c',
+			backgroundColor: '#bb836a',
 			borderWidth: 1
 		}]
      },
