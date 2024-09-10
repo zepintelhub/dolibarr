@@ -229,6 +229,39 @@ class OperationProduit
 
             print '</form>';
 
+            // formulaire de paiement
+            print '<form method="POST" action="save_paiement.php">';
+            // print '<form method="POST" action="'.dol_buildpath('/caissealimentation/save_product.php', 1).'?id='.$object->id.'">';
+            print '<input type="hidden" name="token" value="'.newToken().'">';
+            print '<input type="hidden" name="id" value="'.$object->id.'">';
+            print '<input type="hidden" name="ref" value="'.$object->ref.'">';
+            print '<input type="hidden" name="action" value="paiement">';
+            print '<input type="hidden" name="backpage" value="'.$_SERVER["PHP_SELF"].'">';
+
+            $tablepaiement = <<<EOD
+                <div style="margin-top:50px; margin-bottom:50px;">
+                    <h3>
+                        Paiement 
+                        <span class="badge badge-status1 badge-status" title="Actif">En cours</span>
+                    </h3>
+                    <table class="border centpercent tableforfieldcreate">
+                        <tbody>
+                            <tr class="field_ref">
+                                <td class="titlefieldcreate">Montant</td>
+                                <td class="valuefieldcreate">
+                                    <input type="number" class="flat minwidth400 --success" name="montantApayer" id="montantApayer" value="" placeholder="Saisir montant à payer">
+                                    <button id="payer_facture" class="butAction" style="margin-left:5px;">Payer</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            EOD;
+
+            print $tablepaiement;
+            
+            print '</form>';
+
             $javascript = <<<EOD
                 <script>
                     var index = $i;
