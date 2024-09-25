@@ -5,6 +5,8 @@ if (!defined('DOL_DOCUMENT_ROOT')) {
     die("Dolibarr environment is not correctly defined");
 }
 
+dol_include_once('/caissealimentation/class/paiement_operation.class.php');
+
 class OperationProduit
 {
     // Propriétés
@@ -153,6 +155,7 @@ class OperationProduit
             print '</tr>';
 
             $i = 0;
+            $total_generale = 0;
             $produit_select_list = '';
             if(sizeof($operationProduits) > 0) {
 
@@ -188,6 +191,7 @@ class OperationProduit
         
                     print '<td id="ptmodification_'.($i+1).'">'.$operationProduits[$i]->quantite*$operationProduits[$i]->prix.'</td>';
                     print '</tr>';
+                    $total_generale += $operationProduits[$i]->quantite*$operationProduits[$i]->prix;
                 }
             }
 
@@ -238,18 +242,41 @@ class OperationProduit
             print '<input type="hidden" name="action" value="paiement">';
             print '<input type="hidden" name="backpage" value="'.$_SERVER["PHP_SELF"].'">';
 
+            $listpaiement = PaiementOperation::fetchByOperation($db, $object->id);
+            $tablelistpaiement = "";
+            $paiementmontant = 0;
+            if($listpaiement && sizeof($listpaiement)) {
+                $tablelistpaiement .= '<table class="border centpercent tableforfieldcreate">';
+                $tablelistpaiement .= '<tr class="liste_titre nodrag nodrop">';
+                $tablelistpaiement .= '<th>Montant</th>';
+                $tablelistpaiement .= '<th>Date</th>';
+                $tablelistpaiement .= '</tr>';
+                foreach($listpaiement as $paiement) {
+                    $tablelistpaiement .= "<tr>";
+                    $tablelistpaiement .= "<td>".$paiement->amount."</td>";
+                    $tablelistpaiement .= "<td>".$paiement->datep."</td>";
+                    $tablelistpaiement .= "</tr>";
+                    $paiementmontant += $paiement->amount;
+                }
+                $tablelistpaiement .= '</table>';
+            }
+            $badgeclass = "";
+            if($paiementmontant == 0) $badgeclass = '<span class="badge badge-status1 badge-status" title="Actif">Non payé</span>';
+            else if($paiementmontant < $total_generale) $badgeclass = '<span class="badge badge-status1 badge-status" title="Actif">En cours</span>';
+            else if($paiementmontant >= $total_generale) $badgeclass = '<span class="badge badge-status4 badge-status" title="Actif">Payé</span>';
             $tablepaiement = <<<EOD
                 <div style="margin-top:50px; margin-bottom:50px;">
                     <h3>
                         Paiement 
-                        <span class="badge badge-status1 badge-status" title="Actif">En cours</span>
+                        $badgeclass
                     </h3>
+                    $tablelistpaiement
                     <table class="border centpercent tableforfieldcreate">
                         <tbody>
                             <tr class="field_ref">
                                 <td class="titlefieldcreate">Montant</td>
                                 <td class="valuefieldcreate">
-                                    <input type="number" class="flat minwidth400 --success" name="montantApayer" id="montantApayer" value="" placeholder="Saisir montant à payer">
+                                    <input type="number" class="flat minwidth400 --success" name="montantApayer" id="montantApayer" value="$total_generale" placeholder="Saisir montant à payer">
                                     <button id="payer_facture" class="butAction" style="margin-left:5px;">Payer</button>
                                 </td>
                             </tr>

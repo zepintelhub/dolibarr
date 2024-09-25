@@ -82,6 +82,8 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
 dol_include_once('/caissealimentation/class/operation.class.php');
 dol_include_once('/caissealimentation/class/operation_produit.class.php');
 dol_include_once('/caissealimentation/lib/caissealimentation_operation.lib.php');
+dol_include_once('/caissealimentation/class/paiement_operation.class.php');
+dol_include_once('/compta/paiement/class/paiement.class.php');
 
 // Load translation files required by the page
 $langs->loadLangs(array("caissealimentation@caissealimentation", "other"));
@@ -99,6 +101,7 @@ $backtopage = GETPOST('backtopage', 'alpha');					// if not set, a default page 
 $backtopageforcancel = GETPOST('backtopageforcancel', 'alpha');	// if not set, $backtopage will be used
 $backtopagejsfields = GETPOST('backtopagejsfields', 'alpha');
 $dol_openinpopup = GETPOST('dol_openinpopup', 'aZ09');
+$montant = GETPOST('montantApayer', 'alpha');
 
 /**
  * Enregistrer les lignes de produit

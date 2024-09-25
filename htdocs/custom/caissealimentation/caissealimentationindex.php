@@ -361,7 +361,7 @@ if ($resql) {
 		<canvas id="myChartProduit"></canvas>
 	</div>
 	<div class="column">
-		<h3>Statistique somme quantité produit</h3>
+		<h3>Statistique des produits les plus vendus</h3>
 		<canvas id="myChartQuantite"></canvas>
 	</div>
 </div>

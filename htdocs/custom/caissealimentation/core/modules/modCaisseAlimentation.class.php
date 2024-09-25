@@ -316,7 +316,7 @@ class modCaisseAlimentation extends DolibarrModules
 		$this->menu[$r++] = array(
 			'fk_menu'=>'', // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 			'type'=>'top', // This is a Top menu entry
-			'titre'=>'ModuleCaisseAlimentationName',
+			'titre'=>'Vente',
 			'prefix' => img_picto('', $this->picto, 'class="pictofixedwidth valignmiddle"'),
 			'mainmenu'=>'caissealimentation',
 			'leftmenu'=>'',
@@ -337,7 +337,7 @@ class modCaisseAlimentation extends DolibarrModules
 		$this->menu[$r++]=array(
 			 'fk_menu' => 'fk_mainmenu=caissealimentation',
 			 'type' => 'left',
-			 'titre' => 'Operation',
+			 'titre' => 'Vente',
 			 'mainmenu' => 'caissealimentation',
 			 'leftmenu' => 'operation',
 			 'url' => '/caissealimentation/operation_list.php',
@@ -354,7 +354,7 @@ class modCaisseAlimentation extends DolibarrModules
 		$this->menu[$r++]=array(
 			 'fk_menu' => 'fk_mainmenu=caissealimentation,fk_leftmenu=operation',
 			 'type' => 'left',
-			 'titre' => 'Liste Operation',
+			 'titre' => 'Liste Vente',
 			 'mainmenu' => 'caissealimentation',
 			 'leftmenu' => 'caissealimentation_operation_list',
 			 'url' => '/caissealimentation/operation_list.php',
@@ -371,7 +371,7 @@ class modCaisseAlimentation extends DolibarrModules
 		$this->menu[$r++]=array(
 			 'fk_menu' => 'fk_mainmenu=caissealimentation,fk_leftmenu=operation',
 			 'type' => 'left',
-			 'titre' => 'Nouvelle Operation',
+			 'titre' => 'Nouvelle Vente',
 			 'mainmenu' => 'caissealimentation',
 			 'leftmenu' => 'caissealimentation_operation_new',
 			 'url' => '/caissealimentation/operation_card.php?action=create',
@@ -383,6 +383,22 @@ class modCaisseAlimentation extends DolibarrModules
 			 'user' => 2,
 			 'object' => '',
 		);
+
+		$this->menu[$r++]=array(
+			'fk_menu' => 'fk_mainmenu=caissealimentation,fk_leftmenu=operation',
+			'type' => 'left',
+			'titre' => 'Satistique Vente',
+			'mainmenu' => 'caissealimentation',
+			'leftmenu' => 'caissealimentation_operation_statistique',
+			'url' => '/caissealimentation/statistique.php',
+			'langs' => 'caissealimentation@caissealimentation',
+			'position' => 1003,
+			'enabled' => 'isModEnabled(caissealimentation)',
+			'perms' => '$user->hasRight(caissealimentation, operation, write)',
+			'target' => '',
+			'user' => 2,
+			'object' => '',
+	   );
 		/* END MODULEBUILDER LEFTMENU NOUVELLE OPERATION */
 
 		/* BEGIN MODULEBUILDER LEFTMENU MYOBJECT */
