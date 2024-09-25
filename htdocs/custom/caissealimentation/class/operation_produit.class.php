@@ -239,6 +239,7 @@ class OperationProduit
             print '<input type="hidden" name="token" value="'.newToken().'">';
             print '<input type="hidden" name="id" value="'.$object->id.'">';
             print '<input type="hidden" name="ref" value="'.$object->ref.'">';
+            print '<input type="hidden" name="total" value="'.$total_generale.'">';
             print '<input type="hidden" name="action" value="paiement">';
             print '<input type="hidden" name="backpage" value="'.$_SERVER["PHP_SELF"].'">';
 
@@ -246,48 +247,246 @@ class OperationProduit
             $tablelistpaiement = "";
             $paiementmontant = 0;
             if($listpaiement && sizeof($listpaiement)) {
-                $tablelistpaiement .= '<table class="border centpercent tableforfieldcreate">';
+                $tablelistpaiement .= '<table class="noborder noshadow" width="100%">';
                 $tablelistpaiement .= '<tr class="liste_titre nodrag nodrop">';
                 $tablelistpaiement .= '<th>Montant</th>';
                 $tablelistpaiement .= '<th>Date</th>';
+                $tablelistpaiement .= '<th>Mode Paiement</th>';
                 $tablelistpaiement .= '</tr>';
                 foreach($listpaiement as $paiement) {
                     $tablelistpaiement .= "<tr>";
                     $tablelistpaiement .= "<td>".$paiement->amount."</td>";
                     $tablelistpaiement .= "<td>".$paiement->datep."</td>";
+                    $tablelistpaiement .= "<td>".$paiement->mode_paiement ?? "-"."</td>";
                     $tablelistpaiement .= "</tr>";
                     $paiementmontant += $paiement->amount;
                 }
                 $tablelistpaiement .= '</table>';
             }
+            $resteapayer = $total_generale - $paiementmontant;
             $badgeclass = "";
             if($paiementmontant == 0) $badgeclass = '<span class="badge badge-status1 badge-status" title="Actif">Non payé</span>';
             else if($paiementmontant < $total_generale) $badgeclass = '<span class="badge badge-status1 badge-status" title="Actif">En cours</span>';
             else if($paiementmontant >= $total_generale) $badgeclass = '<span class="badge badge-status4 badge-status" title="Actif">Payé</span>';
+            
+            $sqlmodepaiement = "SELECT * FROM " . MAIN_DB_PREFIX . "caissealimentation_modepaiement ORDER BY ref;";
+            $modepaiementselect = '<select name="fk_paiement" class="select"><option>Mode de paiement</option>';
+            $resql = $db->query($sqlmodepaiement);
+            if($resql) {
+                $selected = "selected";
+                while($row = $db->fetch_array($resql)) {
+                    $modepaiementselect .= '<option '.$selected.' value="'. $row['rowid'] .'.">'. $row['label'] .'</option>';
+                    $selected = "";
+                }
+            }
+            $modepaiementselect .= '</select>';
+            $modepaiementinput = '<input id="mode-paiement-input" disabled value="Cash">';
+            $modepaiementinput .= '<input id="mode-paiement-hidden" type="hidden" name="mode_paiement" value="Cash">';
+            $tablechamppaiement = "";
+            if($paiementmontant < $total_generale) $tablechamppaiement = <<<EOD
+                <span style="margin-left:3px;">Reste à payer : $resteapayer </span><br>
+                <table class="border tableforfieldcreate">
+                    <tbody>
+                        <tr class="field_ref">
+                            <td>$modepaiementinput</td>
+                            <td class="valuefieldcreate">
+                                <input type="number" max="$resteapayer" class="flat minwidth400 --success" value="$resteapayer" name="montantApayer" id="montantApayer" placeholder="Saisir montant à payer">
+                                <button id="payer_facture" class="butAction" style="margin-left:5px;">Payer</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            EOD;
+
+            $stylecss = <<<EOD
+                <style>
+                    .card-container {
+                        display: flex;
+                        flex-wrap: wrap;
+                        justify-content: space-around;
+                        gap: 20px;
+                    }
+
+                    .card {
+                        width: 130px;
+                        border: 1px solid #ddd;
+                        border-radius: 8px;
+                        overflow: hidden;
+                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                        text-align: center;
+                        background-color: #fff;
+                    }
+
+                    .card-logo {
+                        height: 80px;
+                        background-color: #f7f7f7;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    .logo-img {
+                        max-height: 100%;
+                        max-width: 100%;
+                    }
+
+                    .card-body {
+                        padding: 10px;
+                    }
+
+                    .card-body h5 {
+                        margin: 10px 0;
+                        font-size: 16px;
+                        font-weight: bold;
+                        color: #333;
+                    }
+
+                    .card-select {
+                        border-color: black;
+                    }
+                </style>
+            EOD;
+
+            $orange_money_logo_path = DOL_URL_ROOT . '/custom/caissealimentation/img/Orange-Money.png';
+            $moov_money_logo_path = DOL_URL_ROOT . '/custom/caissealimentation/img/Moov-Money.jpeg';
+            $zamapay_logo_path = DOL_URL_ROOT . '/custom/caissealimentation/img/yam-group.png';
+            $moneycash_logo_path = DOL_URL_ROOT . '/custom/caissealimentation/img/cash.png';
+            $telecel_money_logo_path = DOL_URL_ROOT . '/custom/caissealimentation/img/telecel.png';
+            $modepaiementcard = <<<EOD
+                <div class="card-container">
+                    
+                    <div id="Cash" class="card mode-paiement">
+                        <div class="card-logo">
+                            <img src="$moneycash_logo_path" alt="" class="logo-img">
+                        </div>
+                        <div class="card-body">
+                            <h5>Cash</h5>
+                        </div>
+                    </div>
+
+                    <div id="ZAMAPAY" class="card mode-paiement">
+                        <div class="card-logo">
+                            <img src="$zamapay_logo_path" alt="" class="logo-img">
+                        </div>
+                        <div class="card-body">
+                            <h5>ZAMAPAY</h5>
+                        </div>
+                    </div>
+
+                    <div id="Orange Money" class="card mode-paiement">
+                        <div class="card-logo">
+                            <img src="$orange_money_logo_path" alt="" class="logo-img">
+                        </div>
+                        <div class="card-body">
+                            <h5>Orange Money</h5>
+                        </div>
+                    </div>
+
+                    <div id="Moov Money" class="card mode-paiement">
+                        <div class="card-logo">
+                            <img src="$moov_money_logo_path" alt="" class="logo-img">
+                        </div>
+                        <div class="card-body">
+                            <h5>Moov Money</h5>
+                        </div>
+                    </div>
+
+                    <div id="Telecel Money" class="card mode-paiement">
+                        <div class="card-logo">
+                            <img src="$telecel_money_logo_path" alt="" class="logo-img">
+                        </div>
+                        <div class="card-body">
+                            <h5>Telecel Money</h5>
+                        </div>
+                    </div>
+                </div>
+            EOD;
+            
             $tablepaiement = <<<EOD
+                $stylecss
                 <div style="margin-top:50px; margin-bottom:50px;">
                     <h3>
                         Paiement 
                         $badgeclass
                     </h3>
                     $tablelistpaiement
-                    <table class="border centpercent tableforfieldcreate">
-                        <tbody>
-                            <tr class="field_ref">
-                                <td class="titlefieldcreate">Montant</td>
-                                <td class="valuefieldcreate">
-                                    <input type="number" class="flat minwidth400 --success" name="montantApayer" id="montantApayer" value="$total_generale" placeholder="Saisir montant à payer">
-                                    <button id="payer_facture" class="butAction" style="margin-left:5px;">Payer</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    $modepaiementcard
+                    <span style="margin-left:3px;">Total payé : $paiementmontant </span><br>
+                    $tablechamppaiement
                 </div>
             EOD;
 
             print $tablepaiement;
             
             print '</form>';
+
+            $clientliste = "";
+            $sql = "SELECT * FROM " . MAIN_DB_PREFIX . "societe";
+            $resql = $db->query($sql);
+            if($resql) {
+                while($obj = $db->fetch_object($resql)) {
+                    $clientliste .= '<option value="'.$obj->rowid.'">'.$obj->nom.'</option>';
+                }
+            } else {
+                print '<br>Rollback: ' . $db->lasterror();
+            }
+
+            $serveur = $_SERVER['PHP_SELF'];
+            $newToken = newToken();
+            $addclient = <<<EOD
+            <form id="formselectclient" method="POST" action="save_client.php">
+                <input hidden name="action" value="selectclient" />
+                <input hidden name="token" value="$newToken" />
+                <input hidden name="id" value="$object->id" />
+                <input hidden name="backpage" value="$serveur" />
+                <table class="border tableforfieldcreate">
+                    <tbody>
+                        <tr id="selectclient" class="field_ref">
+                            <td>Client</td>
+                            <td class="valuefieldcreate">
+                                <select required class="selectclient" name="selectclient">
+                                    <option></option>
+                                    $clientliste
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><button class="butAction" style="margin-left:0px;">Enregistrer</button></td>
+                            <td><button id="toggleaddclient" class="butAction" style="margin-left:5px;">Ajouter</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
+
+            <form id="formaddclient" method="POST" action="save_client.php">
+                <input hidden name="action" value="addclient" />
+                <input hidden name="token" value="$newToken" />
+                <input hidden name="id" value="$object->id" />
+                <input hidden name="backpage" value="$serveur" />
+                <table class="border tableforfieldcreate">
+                    <tbody>
+                        <tr class="addclient field_ref">
+                            <td>Nom Client</td>
+                            <td class="valuefieldcreate">
+                                <input required class="flat minwidth400 --success" value="" name="nom_client" id="nom_client" placeholder="Saisir le nom">
+                            </td>
+                        </tr>
+                        <tr class="addclient field_ref">
+                            <td>Téléphone</td>
+                            <td class="valuefieldcreate">
+                                <input class="flat minwidth400 --success" value="" name="telephone_client" id="telephone_client" placeholder="Saisir le téléphone">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><button class="butAction" style="margin-left:0px;">Enregistrer</button></td>
+                            <td><button id="toggleselectclient" class="butAction" style="margin-left:5px;">Sélection</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
+            EOD;
+
+            print $addclient;
 
             $javascript = <<<EOD
                 <script>
@@ -335,9 +534,22 @@ class OperationProduit
                             console.log('price, quantite, price*quantite', price, quantite, price*quantite, Number.parseInt($("#pumodification_"+_index).html()));
                             $("#ptmodification_"+_index).html(Number.parseInt($("#pumodification_"+_index).html())*quantite);
                         });
+
+                        $(".mode-paiement").click((event) => {
+                            $("#mode-paiement-input, #mode-paiement-hidden").val(event.currentTarget.id);
+                            $(".mode-paiement").removeClass("card-select");
+                            $(event.currentTarget).addClass("card-select");
+                        });
                         
                         $(".select_produit").select2();
                         $(".select_produitmodification").select2();
+                        $(".selectclient").select2();
+                        $("#formselectclient").hide();
+                        $("#toggleselectclient, #toggleaddclient").click((event) => {
+                            event.preventDefault();
+                            $("#formselectclient").toggle();
+                            $("#formaddclient").toggle();
+                        });
                     }
 
                     $("#ajouter_produit").click((event) => {

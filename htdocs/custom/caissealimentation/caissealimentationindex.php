@@ -265,13 +265,17 @@ $resql = $db->query($sql);
 $colonneMois = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 $tableVente = [];
 $dataVente = array_fill(0,12,0);
+$totalChiffreAffaire = 0;
 if ($resql) {
 	while ($obj = $db->fetch_object($resql)) {
 		$produit = new Product($db);
 		$produit->fetch($obj->produit_id);
 		$tableVente[$obj->produit_id][0] = $produit->label;
 		$tableVente[$obj->produit_id][$obj->mois] = $obj->total_quantite * $obj->total_prix; 
-		$dataVente[$obj->mois-1] += $obj->total_quantite * $obj->total_prix; 
+		$dataVente[$obj->mois-1] += $obj->total_quantite * $obj->total_prix;
+		if(!array_key_exists(13, $tableVente[$obj->produit_id])) $tableVente[$obj->produit_id][13] = 0;
+		$tableVente[$obj->produit_id][13] += $obj->total_quantite * $obj->total_prix; 
+		$totalChiffreAffaire += $obj->total_quantite * $obj->total_prix;  
 	}
 }
 if(sizeof($tableVente) > 0) foreach($tableVente as $item) {
@@ -297,6 +301,8 @@ if ($resql) {
 		$client->fetch($obj->fk_soc);
 		$tableClient[$obj->fk_soc][0] = $client->name;
 		$tableClient[$obj->fk_soc][$obj->mois] = $obj->total_quantite * $obj->total_prix; 
+		if(!array_key_exists(13, $tableClient[$obj->fk_soc])) $tableClient[$obj->fk_soc][13] = 0;
+		$tableClient[$obj->fk_soc][13] += $obj->total_quantite * $obj->total_prix; 
 		$dataClient[$obj->mois-1] += $obj->total_quantite * $obj->total_prix; 
 	}
 }
@@ -366,6 +372,10 @@ if ($resql) {
 	</div>
 </div>
 
+<div>
+	<h3>Total Chiffre d'affaire : <?php print $totalChiffreAffaire; ?> FCFA</h3>
+</div>
+
 <div class="container">
 	<div class="column">
 		<h3>Tableau des chiffres d'affaire par produit</h3>
@@ -375,10 +385,11 @@ if ($resql) {
 				<?php foreach($colonneMois as $it) { ?>
 					<th><?php print $it; ?></th>
 				<?php } ?>
+				<th>Total</th>
             </tr>
 			<?php if(sizeof($tableVente) > 0) { foreach($tableVente as $item) { ?>
 				<?php if($item[0]) { ?><tr>
-					<?php for($i = 0; $i <= 12; $i++) { ?>
+					<?php for($i = 0; $i <= 13; $i++) { ?>
 						<td><?php if(array_key_exists($i, $item)) print $item[$i]; else print 0; ?></td>
 					<?php } ?>
 				</tr><?php } ?>
@@ -396,10 +407,11 @@ if ($resql) {
 				<?php foreach($colonneMois as $it) { ?>
 					<th><?php print $it; ?></th>
 				<?php } ?>
+				<th>Total</th>
             </tr>
 			<?php if(sizeof($tableClient) > 0) { foreach($tableClient as $item) { ?>
 				<?php if($item[0]) { ?><tr>
-					<?php for($i = 0; $i <= 12; $i++) { ?>
+					<?php for($i = 0; $i <= 13; $i++) { ?>
 						<td><?php if(array_key_exists($i, $item)) print $item[$i]; else print 0; ?></td>
 					<?php } ?>
 				</tr><?php } ?>
