@@ -352,6 +352,7 @@ class OperationProduit
             $zamapay_logo_path = DOL_URL_ROOT . '/custom/caissealimentation/img/yam-group.png';
             $moneycash_logo_path = DOL_URL_ROOT . '/custom/caissealimentation/img/cash.png';
             $telecel_money_logo_path = DOL_URL_ROOT . '/custom/caissealimentation/img/telecel.png';
+            $visa_card_logo_path = DOL_URL_ROOT . '/custom/caissealimentation/img/visa-card-logo.png';
             $modepaiementcard = <<<EOD
                 <div class="card-container">
                     
@@ -397,6 +398,15 @@ class OperationProduit
                         </div>
                         <div class="card-body">
                             <h5>Telecel Money</h5>
+                        </div>
+                    </div>
+
+                    <div id="Visa Card" class="card mode-paiement">
+                        <div class="card-logo">
+                            <img src="$visa_card_logo_path" alt="" class="logo-img">
+                        </div>
+                        <div class="card-body">
+                            <h5>Visa Card</h5>
                         </div>
                     </div>
                 </div>
