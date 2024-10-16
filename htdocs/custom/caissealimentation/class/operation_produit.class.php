@@ -308,7 +308,7 @@ class OperationProduit
             if($paiementmontant < $total_generale) $tablechamppaiement = <<<EOD
                 <!--<span style="margin-left:3px;">Reste à payer : $resteapayer </span><br>-->
                 
-                <div style="margin-top: 30px; margin-bottom: 20px">
+                <div class="hidden" style="margin-top: 30px; margin-bottom: 20px">
                     <h4>Echance fractionnée</h4>
                     <button id="add_echeance" class="butAction" style="margin-left:5px; margin-bottom:10px;">Ajouter</button>
                     <table class="border tableforfieldcreate">
@@ -649,7 +649,6 @@ class OperationProduit
 
             print $addclient;
             $client_id = $client_id ? $client_id : 0;
-            print '<br>Client ID : ' . $client_id . ' ' . false;
             $javascript = <<<EOD
                 <script>
                     var index = $i;
