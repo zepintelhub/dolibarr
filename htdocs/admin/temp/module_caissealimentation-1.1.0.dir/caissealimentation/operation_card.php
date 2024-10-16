@@ -616,9 +616,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 	// include DOL_DOCUMENT_ROOT.'/core/tpl/commonfields_edit.tpl.php';
 	// include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_edit.tpl.php';
-	$client_id = $object->fk_soc;
-	print '<br>Client ID 1 : ' . $client_id;
-	OperationProduit::showTableToCreate($db, $object, $object->fk_soc);
+	OperationProduit::showTableToCreate($db, $object);
 
 	// Buttons for actions
 

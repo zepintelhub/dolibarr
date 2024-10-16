@@ -14,16 +14,15 @@
 -- along with this program.  If not, see https://www.gnu.org/licenses/.
 
 
-CREATE TABLE llx_caissealimentation_creance(
+CREATE TABLE llx_caissealimentation_modepaiement(
 	-- BEGIN MODULEBUILDER FIELDS
 	rowid integer AUTO_INCREMENT PRIMARY KEY NOT NULL, 
 	ref varchar(128) NOT NULL, 
 	label varchar(255), 
-	fk_soc integer, 
 	description text, 
 	note_public text, 
 	note_private text, 
-	date_creation datetime, 
+	date_creation datetime NOT NULL, 
 	tms timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
 	fk_user_creat integer NOT NULL, 
 	fk_user_modif integer, 
@@ -31,9 +30,6 @@ CREATE TABLE llx_caissealimentation_creance(
 	import_key varchar(14), 
 	model_pdf varchar(255), 
 	status integer NOT NULL, 
-	montantpay double(28,4), 
-	restepay double(28,4), 
-	vente integer, 
-	dateexpiration date
+	default integer
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;

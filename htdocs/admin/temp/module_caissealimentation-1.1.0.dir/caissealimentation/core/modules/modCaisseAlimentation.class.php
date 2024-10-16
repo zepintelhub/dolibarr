@@ -76,7 +76,7 @@ class modCaisseAlimentation extends DolibarrModules
 		$this->editor_squarred_logo = '';					// Must be image filename into the module/img directory followed with @modulename. Example: 'myimage.png@caissealimentation'
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated', 'experimental_deprecated' or a version string like 'x.y.z'
-		$this->version = '1.1';
+		$this->version = '1.0';
 		// Url to the file with your last numberversion of this module
 		//$this->url_last_version = 'http://www.example.com/versionmodule.txt';
 
@@ -316,7 +316,7 @@ class modCaisseAlimentation extends DolibarrModules
 		$this->menu[$r++] = array(
 			'fk_menu'=>'', // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
 			'type'=>'top', // This is a Top menu entry
-			'titre'=>'ModuleCaisseAlimentationName',
+			'titre'=>'Vente',
 			'prefix' => img_picto('', $this->picto, 'class="pictofixedwidth valignmiddle"'),
 			'mainmenu'=>'caissealimentation',
 			'leftmenu'=>'',
@@ -333,16 +333,18 @@ class modCaisseAlimentation extends DolibarrModules
 
 
 
+
+
 				/* BEGIN MODULEBUILDER LEFTMENU OPERATION */
 		$this->menu[$r++]=array(
 			 'fk_menu' => 'fk_mainmenu=caissealimentation',
 			 'type' => 'left',
-			 'titre' => 'Operation',
+			 'titre' => 'Vente',
 			 'mainmenu' => 'caissealimentation',
 			 'leftmenu' => 'operation',
 			 'url' => '/caissealimentation/operation_list.php',
 			 'langs' => 'caissealimentation@caissealimentation',
-			 'position' => 1000,
+			 'position' => 1000 + $r,
 			 'enabled' => 'isModEnabled(\'caissealimentation\')',
 			 'perms' => '$user->hasRight(\'caissealimentation\', \'operation\', \'read\')',
 			 'target' => '',
@@ -350,57 +352,157 @@ class modCaisseAlimentation extends DolibarrModules
 			 'object' => 'Operation',
 		);
 		/* END MODULEBUILDER LEFTMENU OPERATION */
-		/* BEGIN MODULEBUILDER LEFTMENU LISTE OPERATION */
+		/* BEGIN MODULEBUILDER LEFTMENU LISTE VENTE */
 		$this->menu[$r++]=array(
 			 'fk_menu' => 'fk_mainmenu=caissealimentation,fk_leftmenu=operation',
 			 'type' => 'left',
-			 'titre' => 'Liste Operation',
+			 'titre' => 'Liste Vente',
 			 'mainmenu' => 'caissealimentation',
 			 'leftmenu' => 'caissealimentation_operation_list',
 			 'url' => '/caissealimentation/operation_list.php',
 			 'langs' => 'caissealimentation@caissealimentation',
-			 'position' => 1001,
+			 'position' => 1000 + $r,
 			 'enabled' => 'isModEnabled(\'caissealimentation\')',
 			 'perms' => '$user->hasRight(\'caissealimentation\', \'operation\', \'read\')',
 			 'target' => '',
 			 'user' => 2,
 			 'object' => '',
 		);
-		/* END MODULEBUILDER LEFTMENU LISTE OPERATION */
-		/* BEGIN MODULEBUILDER LEFTMENU NOUVELLE OPERATION */
+		/* END MODULEBUILDER LEFTMENU LISTE VENTE */
+		/* BEGIN MODULEBUILDER LEFTMENU NOUVELLE VENTE */
 		$this->menu[$r++]=array(
 			 'fk_menu' => 'fk_mainmenu=caissealimentation,fk_leftmenu=operation',
 			 'type' => 'left',
-			 'titre' => 'Nouvelle Operation',
+			 'titre' => 'Nouvelle Vente',
 			 'mainmenu' => 'caissealimentation',
 			 'leftmenu' => 'caissealimentation_operation_new',
 			 'url' => '/caissealimentation/operation_card.php?action=create',
 			 'langs' => 'caissealimentation@caissealimentation',
-			 'position' => 1000,
+			 'position' => 1000 + $r,
+			 'enabled' => 'isModEnabled(\'caissealimentation\')',
+			 'perms' => '$user->hasRight(\'caissealimentation\', \'operation\', \'write\')',
+			 'target' => '',
+			 'user' => 2,
+			 'object' => '',
+		);
+		/* END MODULEBUILDER LEFTMENU NOUVELLE VENTE */
+		/* BEGIN MODULEBUILDER LEFTMENU SATISTIQUE VENTE */
+		$this->menu[$r++]=array(
+			 'fk_menu' => 'fk_mainmenu=caissealimentation,fk_leftmenu=operation',
+			 'type' => 'left',
+			 'titre' => 'Satistique Vente',
+			 'mainmenu' => 'caissealimentation',
+			 'leftmenu' => 'caissealimentation_operation_statistique',
+			 'url' => '/caissealimentation/statistique.php',
+			 'langs' => 'caissealimentation@caissealimentation',
+			 'position' => 1000 + $r,
 			 'enabled' => 'isModEnabled(caissealimentation)',
 			 'perms' => '$user->hasRight(caissealimentation, operation, write)',
 			 'target' => '',
 			 'user' => 2,
 			 'object' => '',
 		);
-
+		/* END MODULEBUILDER LEFTMENU SATISTIQUE VENTE */
+		/* BEGIN MODULEBUILDER LEFTMENU MODEPAIEMENT */
 		$this->menu[$r++]=array(
-			'fk_menu' => 'fk_mainmenu=caissealimentation,fk_leftmenu=operation',
-			'type' => 'left',
-			'titre' => 'Satistique Operation',
-			'mainmenu' => 'caissealimentation',
-			'leftmenu' => 'caissealimentation_operation_statistique',
-			'url' => '/caissealimentation/statistique.php',
-			'langs' => 'caissealimentation@caissealimentation',
-			'position' => 1003,
-			'enabled' => 'isModEnabled(caissealimentation)',
-			'perms' => '$user->hasRight(caissealimentation, operation, write)',
-			'target' => '',
-			'user' => 2,
-			'object' => '',
-	   );
-		/* END MODULEBUILDER LEFTMENU NOUVELLE OPERATION */
+			 'fk_menu' => 'fk_mainmenu=caissealimentation',
+			 'type' => 'left',
+			 'titre' => 'Mode Paiement',
+			 'mainmenu' => 'caissealimentation',
+			 'leftmenu' => 'modepaiement',
+			 'url' => '/caissealimentation/modepaiement_list.php',
+			 'langs' => 'caissealimentation@caissealimentation',
+			 'position' => 1000 + $r,
+			 'enabled' => 'isModEnabled(\'caissealimentation\')',
+			 'perms' => '1',
+			 'target' => '',
+			 'user' => 2,
+			 'object' => 'ModePaiement',
+		);
+		/* END MODULEBUILDER LEFTMENU MODEPAIEMENT */
+		/* BEGIN MODULEBUILDER LEFTMENU LIST MODE PAIEMENT */
+		$this->menu[$r++]=array(
+			 'fk_menu' => 'fk_mainmenu=caissealimentation,fk_leftmenu=modepaiement',
+			 'type' => 'left',
+			 'titre' => 'Liste Mode Paiement',
+			 'mainmenu' => 'caissealimentation',
+			 'leftmenu' => 'caissealimentation_modepaiement_list',
+			 'url' => '/caissealimentation/modepaiement_list.php',
+			 'langs' => 'caissealimentation@caissealimentation',
+			 'position' => 1000 + $r,
+			 'enabled' => 'isModEnabled(\'caissealimentation\')',
+			 'perms' => '1',
+			 'target' => '',
+			 'user' => 2,
+			 'object' => '',
+		);
+		/* END MODULEBUILDER LEFTMENU LIST MODE PAIEMENT */
+		/* BEGIN MODULEBUILDER LEFTMENU NOUVEAU MODE PAIEMENT */
+		$this->menu[$r++]=array(
+			 'fk_menu' => 'fk_mainmenu=caissealimentation,fk_leftmenu=modepaiement',
+			 'type' => 'left',
+			 'titre' => 'Nouveau Mode Paiement',
+			 'mainmenu' => 'caissealimentation',
+			 'leftmenu' => 'caissealimentation_modepaiement_new',
+			 'url' => '/caissealimentation/modepaiement_card.php?action=create',
+			 'langs' => 'caissealimentation@caissealimentation',
+			 'position' => 1000 + $r,
+			 'enabled' => 'isModEnabled(caissealimentation)',
+			 'perms' => '1',
+			 'target' => '',
+			 'user' => 2,
+			 'object' => '',
+		);
+		/* END MODULEBUILDER LEFTMENU NOUVEAU MODE PAIEMENT */
 
+		/* BEGIN MODULEBUILDER LEFTMENU CREANCE */
+		$this->menu[$r++]=array(
+			'fk_menu'=>'fk_mainmenu=caissealimentation',
+			'type'=>'left',
+			'titre'=>'Créance',
+			'prefix' => img_picto('', $this->picto, 'class="paddingright pictofixedwidth valignmiddle"'),
+			'mainmenu'=>'caissealimentation',
+			'leftmenu'=>'creance',
+			'url'=>'/caissealimentation/creance_list.php',
+			'langs'=>'caissealimentation@caissealimentation',
+			'position'=>1000+$r,
+			'enabled'=>'isModEnabled("caissealimentation")',
+			'perms'=>'1',
+			'target'=>'',
+			'user'=>2,
+			'object'=>'Creance'
+		);
+		$this->menu[$r++]=array(
+			'fk_menu'=>'fk_mainmenu=caissealimentation,fk_leftmenu=creance',
+			'type'=>'left',
+			'titre'=>'Liste Créance',
+			'mainmenu'=>'caissealimentation',
+			'leftmenu'=>'caissealimentation_creance_list',
+			'url'=>'/caissealimentation/creance_list.php',
+			'langs'=>'caissealimentation@caissealimentation',
+			'position'=>1000+$r,
+			'enabled'=>'isModEnabled("caissealimentation")',
+			'perms'=>'1',
+			'target'=>'',
+			'user'=>2,
+			'object'=>'Creance'
+        );
+		$this->menu[$r++]=array(
+			'fk_menu'=>'fk_mainmenu=caissealimentation,fk_leftmenu=creance',
+			'type'=>'left',
+			'titre'=>'Nouvelle Créance',
+			'mainmenu'=>'caissealimentation',
+			'leftmenu'=>'caissealimentation_creance_new',
+			'url'=>'/caissealimentation/creance_card.php?action=create',
+			'langs'=>'caissealimentation@caissealimentation',
+			'position'=>1000+$r,
+			'enabled'=>'isModEnabled("caissealimentation")',
+			'perms'=>'1',
+			'target'=>'',
+			'user'=>2,
+			'object'=>'Creance'
+		);
+		/* END MODULEBUILDER LEFTMENU CREANCE */
 		/* BEGIN MODULEBUILDER LEFTMENU MYOBJECT */
 		/*
 		$this->menu[$r++]=array(

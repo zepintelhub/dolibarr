@@ -126,7 +126,7 @@ class OperationProduit
         return $objects;
     }
 
-    public static function showTableToCreate($db, $object, $client_id = null) {
+    public static function showTableToCreate($db, $object) {
         if($object->id) {
             $operationProduits = OperationProduit::fetchByOperation($db, $object->id);
             print '<form method="POST" action="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'">';
@@ -307,33 +307,8 @@ class OperationProduit
             $format_resteapayer = number_format($resteapayer, 0, '.', ' ');
             if($paiementmontant < $total_generale) $tablechamppaiement = <<<EOD
                 <!--<span style="margin-left:3px;">Reste à payer : $resteapayer </span><br>-->
-                
-                <div style="margin-top: 30px; margin-bottom: 20px">
-                    <h4>Echance fractionnée</h4>
-                    <button id="add_echeance" class="butAction" style="margin-left:5px; margin-bottom:10px;">Ajouter</button>
-                    <table class="border tableforfieldcreate">
-                        <tbody>
-                            <tr class="liste_titre nodrag nodrop">
-                                <th>Date</th>
-                                <th>Montant</th>
-                            </tr>
-                            <tr class="field_ref">
-                                <td>
-                                    <input type="date" class="flat minwidth400 --success" value="" name="date_echeance">
-                                </td>
-                                <td>
-                                    <input type="number" class="flat minwidth400 --success" value="" name="montant_echeance">
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
                 <div style="margin-top: 26px;" class="container">
                     <div class="column">
-                        <div id="message_client_obligatoire" class="hidden" style="margin: 10px; color: red;">
-                            Veuillez enregistrer les informations du client avant de poursuivre les opérations
-                        </div>
                         <table class="border tableforfieldcreate">
                             <tbody>
                                 <tr class="field_ref">
@@ -352,7 +327,7 @@ class OperationProduit
                                 <tr class="field_ref">
                                     <td>Montant total $modepaiementinput</td>
                                     <td class="valuefieldcreate">
-                                        <input type="text" class="flat minwidth400 --success" value="$format_total_generale" name="" id="montant-total" disabled>
+                                        <input type="text" class="flat minwidth400 --success" value="$format_total_generale" name="" id="" disabled>
                                     </td>
                                 </tr>
                                 <tr class="field_ref input-credit $hiddeinput">
@@ -370,8 +345,7 @@ class OperationProduit
                                 <tr class="field_ref">
                                     <td>Montant à payer</td>
                                     <td class="valuefieldcreate">
-                                        <input id="montantpayecredit" type="hidden" class="flat minwidth400 --success" max="$resteapayer" value="$resteapayer" name="montantApayer">
-                                        <input id="montantpaye" type="number" class="flat minwidth400 --success" max="$resteapayer" value="$resteapayer" $disablemontanpaye>
+                                        <input id="montantpaye" type="number" class="flat minwidth400 --success" max="$resteapayer" value="$resteapayer" name="montantApayer" $disablemontanpaye>
                                     </td>
                                 </tr>
                                 <tr class="field_ref">
@@ -648,33 +622,17 @@ class OperationProduit
             EOD;
 
             print $addclient;
-            $client_id = $client_id ? $client_id : 0;
-            print '<br>Client ID : ' . $client_id . ' ' . false;
+
             $javascript = <<<EOD
                 <script>
                     var index = $i;
 
-                    function checkClient() {
-                        var client_id = $client_id;
-
-                        console.log('check client', $client_id);
-                        if(client_id == 0) {
-                            console.log('client inexistant');
-                            return false;
-                        }
-
-                        console.log('client créé');
-
-                        return true;
-                    }
-                    console.log('after function');
-
                     function updateMontant() {
-                        let remise = Number.parseInt($("#remise").val()) ? Number.parseInt($("#remise").val()) : 0;
+                        let sommeVersee = $("#somme-versee").val();
                         let montantpaye = $("#montantpaye").val();
-                        let montanttotal = $resteapayer;
-
                         let typeremise = $("[name='remise_radio']").val();
+                        console.log('remise', $("[name='remise_radio']"), $("[name='remise_radio']").val());
+                        let remise = $("#remise").val();
                         $("input[name='remise_radio']").each(function() {
                             console.log( this.value + ":" + this.checked );
                             if(this.checked) {
@@ -686,29 +644,11 @@ class OperationProduit
                                 }
                             }
                         });
-
-                        $("input[name='comptant_credit']").each(function() {
-                            console.log( this.value + ":" + this.checked );
-                            if(this.checked) {
-                                if(this.value == 'comptant') {
-                                    if(montanttotal - remise) 
-                                        $("#montantpaye").val(montanttotal - remise);
-                                } else {
-                                    if(montantpaye - remise) 
-                                        $("#reste-a-payer").val(montantpaye - remise);
-                                }                                
-                            }
-                        });
-
-                        let sommeVersee = $("#somme-versee").val();
-                        montantpaye = $("#montantpaye").val();
-                        
                         $("#somme-versee").attr("min", $("#montantpaye").val());
                         let monnaie = sommeVersee - montantpaye + Number.parseInt(remise);
                         monnaie = monnaie >= 0 ? monnaie : 0;
                         $("#monnaie, #monnaie-hidden").val(monnaie);
-                        
-                        console.log('reste a payer', montantpaye - Number.parseInt(remise), $("#reste-a-payer").val());
+                        $("#reste-a-payer").val(montantpaye - Number.parseInt(remise));
                     }
 
                     function eventChange() {
@@ -792,38 +732,15 @@ class OperationProduit
                     });
 
                     $(".comptant_credit").click((event) => {
-                        console.log("comptant credit click");
+                        if(event.target.value == "credit") {
+                            $(".input-credit").removeClass("hidden");
+                            $("#montantpaye").attr("disabled", false);
+                        } else {
+                            $(".input-credit").addClass("hidden");
+                        }
 
                         $("#remise").val("");
                         updateMontant();
-
-                        if(event.target.value == "credit") {
-                            if(checkClient()) {
-                                $(".input-credit").removeClass("hidden");
-                                $("#montantpaye").attr("disabled", false);
-                                $("#montantpaye").addClass("hidden");
-                                $("#montantpayecredit").attr("type", "number");
-                                $("#montantpayecredit").attr("disabled", false);
-                                console.log("reste à payer", "$format_resteapayer");
-                                $("#reste-a-payer").val("$format_resteapayer");
-                                $("#montantpaye").val("$resteapayer");
-
-                                $("#message_client_obligatoire").addClass("hidden");
-                                $("#payer_facture").attr("disabled", false);
-                            } else {
-                                $("#message_client_obligatoire").removeClass("hidden");
-                                $("#payer_facture").attr("disabled", true);
-                            }
-                        } else {
-                            $(".input-credit").addClass("hidden");
-                            $("#montantpaye").attr("disabled", true);
-                            $("#montantpaye").removeClass("hidden");
-                            $("#montantpayecredit").attr("type", "hidden");
-                            $("#montantpayecredit").attr("disabled", false);
-
-                            $("#message_client_obligatoire").addClass("hidden");
-                            $("#payer_facture").attr("disabled", false);
-                        }
                     });
 
                     $("#montantpaye, #somme-versee, #remise").keyup((event) => {

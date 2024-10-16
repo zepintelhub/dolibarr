@@ -17,9 +17,9 @@
  */
 
 /**
- *    \file       operation_card.php
+ *    \file       creance_card.php
  *    \ingroup    caissealimentation
- *    \brief      Page to create/edit/view operation
+ *    \brief      Page to create/edit/view creance
  */
 
 
@@ -43,6 +43,7 @@
 //if (! defined('NOSESSION'))                define('NOSESSION', '1');						// On CLI mode, no need to use web sessions
 //if (! defined('NOSTYLECHECK'))             define('NOSTYLECHECK', '1');					// Do not check style html tag into posted data
 //if (! defined('NOTOKENRENEWAL'))           define('NOTOKENRENEWAL', '1');					// Do not roll the Anti CSRF token (used if MAIN_SECURITY_CSRF_WITH_TOKEN is on)
+
 
 // Load Dolibarr environment
 $res = 0;
@@ -79,13 +80,8 @@ if (!$res) {
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
-dol_include_once('/caissealimentation/class/operation.class.php');
-dol_include_once('/caissealimentation/class/operation_produit.class.php');
-dol_include_once('/caissealimentation/lib/caissealimentation_operation.lib.php');
-dol_include_once('/caissealimentation/class/paiement_operation.class.php');
 dol_include_once('/caissealimentation/class/creance.class.php');
-dol_include_once('/compta/paiement/class/paiement.class.php');
-dol_include_once('/societe/class/societe.class.php'); 
+dol_include_once('/caissealimentation/lib/caissealimentation_creance.lib.php');
 
 // Load translation files required by the page
 $langs->loadLangs(array("caissealimentation@caissealimentation", "other"));
@@ -103,11 +99,6 @@ $backtopage = GETPOST('backtopage', 'alpha');					// if not set, a default page 
 $backtopageforcancel = GETPOST('backtopageforcancel', 'alpha');	// if not set, $backtopage will be used
 $backtopagejsfields = GETPOST('backtopagejsfields', 'alpha');
 $dol_openinpopup = GETPOST('dol_openinpopup', 'aZ09');
-$montant = GETPOST('montantApayer', 'alpha');
-$fk_soc = GETPOST('fk_soc', 'int');
-$selectclient = GETPOST('selectclient', 'int');
-$nom_client = GETPOST('nom_client', 'alpha');
-$telephone_client = GETPOST('telephone_client', 'alpha');
 
 if (!empty($backtopagejsfields)) {
 	$tmpbacktopagejsfields = explode(':', $backtopagejsfields);
@@ -115,7 +106,7 @@ if (!empty($backtopagejsfields)) {
 }
 
 // Initialize a technical objects
-$object = new Operation($db);
+$object = new Creance($db);
 $extrafields = new ExtraFields($db);
 $diroutputmassaction = $conf->caissealimentation->dir_output.'/temp/massgeneration/'.$user->id;
 $hookmanager->initHooks(array($object->element.'card', 'globalcard')); // Note that conf->hooks_modules contains array
@@ -145,11 +136,11 @@ include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php'; // Must be 'inclu
 // Set $enablepermissioncheck to 1 to enable a minimum low level of checks
 $enablepermissioncheck = 0;
 if ($enablepermissioncheck) {
-	$permissiontoread = $user->hasRight('caissealimentation', 'operation', 'read');
-	$permissiontoadd = $user->hasRight('caissealimentation', 'operation', 'write'); // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
-	$permissiontodelete = $user->hasRight('caissealimentation', 'operation', 'delete') || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT);
-	$permissionnote = $user->hasRight('caissealimentation', 'operation', 'write'); // Used by the include of actions_setnotes.inc.php
-	$permissiondellink = $user->hasRight('caissealimentation', 'operation', 'write'); // Used by the include of actions_dellink.inc.php
+	$permissiontoread = $user->hasRight('caissealimentation', 'creance', 'read');
+	$permissiontoadd = $user->hasRight('caissealimentation', 'creance', 'write'); // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
+	$permissiontodelete = $user->hasRight('caissealimentation', 'creance', 'delete') || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT);
+	$permissionnote = $user->hasRight('caissealimentation', 'creance', 'write'); // Used by the include of actions_setnotes.inc.php
+	$permissiondellink = $user->hasRight('caissealimentation', 'creance', 'write'); // Used by the include of actions_dellink.inc.php
 } else {
 	$permissiontoread = 1;
 	$permissiontoadd = 1; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
@@ -158,7 +149,7 @@ if ($enablepermissioncheck) {
 	$permissiondellink = 1;
 }
 
-$upload_dir = $conf->caissealimentation->multidir_output[isset($object->entity) ? $object->entity : 1].'/operation';
+$upload_dir = $conf->caissealimentation->multidir_output[isset($object->entity) ? $object->entity : 1].'/creance';
 
 // Security check (enable the most restrictive one)
 //if ($user->socid > 0) accessforbidden();
@@ -175,67 +166,6 @@ if (!$permissiontoread) {
 $error = 0;
 
 
-/**
- * Enregistrer les lignes de produit
- */
-$select_list_op = [];
-$add_produit = GETPOST('add_produit', 'int');
-if($add_produit) {
-	$nb_produit = GETPOST('nb_produit', 'int');
-	$nb_produitmodification = GETPOST('nb_produitmodification', 'int');
-	for($i = 1; $i <= $nb_produit; $i++) {
-		$select_produit = GETPOST('produit_'.$i, 'alpha');
-		$id_produit = explode('_', $select_produit)[0];
-		$prix = explode('_', $select_produit)[1];
-		$quantite = GETPOST('quantite_'.$i, 'int', 0);
-		$operation_ref = GETPOST('operation_ref', 'alpha', 0);
-		
-		$operation_produit = new OperationProduit($db);
-		$operation_produit->produit_id = $id_produit;
-		$operation_produit->prix = $prix;
-		$operation_produit->quantite = $quantite;
-		$operation_produit->operation_id = $id;
-		$operation_produit->operation_ref = $operation_ref;
-		$result = $operation_produit->create();
-
-        if ($result <= 0) {
-            // echo 'Erreur lors de l\'ajout du produit ' . $id_produit;
-        } else {
-			// echo 'Ligne de produit enregistré avec succès';
-		}
-	}
-
-	for($i = 1; $i <= $nb_produitmodification; $i++) {
-		$select_produit = GETPOST('produitmodification_'.$i, 'alpha');
-		$id_produit = explode('_', $select_produit)[0];
-		$prix = explode('_', $select_produit)[1];
-		$id_op = explode('_', $select_produit)[2];
-		$quantite = GETPOST('quantitemodification_'.$i, 'int', 0);
-		$operation_ref = GETPOST('operationmodification_ref', 'alpha', 0);
-		
-		$operation_produit = new OperationProduit($db);
-		$operation_produit->fetch($id_op);
-		$operation_produit->produit_id = $id_produit;
-		$operation_produit->prix = $prix;
-		$operation_produit->quantite = $quantite;
-		$operation_produit->operation_id = $id;
-		$operation_produit->operation_ref = $operation_ref;
-		$result = $operation_produit->update();
-
-        if ($result <= 0) {
-            // echo 'Erreur lors de l\'ajout du produit ' . $id_produit;
-        } else {
-			// echo 'Ligne de produit enregistré avec succès';
-		}
-	}
-
-	$object = new Operation($db);
-	$object->fetch($id);
-	if($fk_soc) $object->fk_soc = $fk_soc;
-	if($ref) $object->ref = $ref;
-	$object->update($user);
-}
-
 /*
  * Actions
  */
@@ -247,14 +177,14 @@ if ($reshook < 0) {
 }
 
 if (empty($reshook)) {
-	$backurlforlist = dol_buildpath('/caissealimentation/operation_list.php', 1);
+	$backurlforlist = dol_buildpath('/caissealimentation/creance_list.php', 1);
 
 	if (empty($backtopage) || ($cancel && empty($id))) {
 		if (empty($backtopage) || ($cancel && strpos($backtopage, '__ID__'))) {
 			if (empty($id) && (($action != 'add' && $action != 'create') || $cancel)) {
 				$backtopage = $backurlforlist;
 			} else {
-				$backtopage = dol_buildpath('/caissealimentation/operation_card.php', 1).'?id='.((!empty($id) && $id > 0) ? $id : '__ID__');
+				$backtopage = dol_buildpath('/caissealimentation/creance_card.php', 1).'?id='.((!empty($id) && $id > 0) ? $id : '__ID__');
 			}
 		}
 	}
@@ -286,9 +216,11 @@ if (empty($reshook)) {
 	// Actions to send emails
 	$triggersendname = 'CAISSEALIMENTATION_MYOBJECT_SENTBYMAIL';
 	$autocopy = 'MAIN_MAIL_AUTOCOPY_MYOBJECT_TO';
-	$trackid = 'operation'.$object->id;
+	$trackid = 'creance'.$object->id;
 	include DOL_DOCUMENT_ROOT.'/core/actions_sendmails.inc.php';
 }
+
+
 
 
 /*
@@ -299,17 +231,11 @@ $form = new Form($db);
 $formfile = new FormFile($db);
 $formproject = new FormProjets($db);
 
-$title = $langs->trans("Operation")." - ".$langs->trans('Card');
+$title = $langs->trans("Creance")." - ".$langs->trans('Card');
 //$title = $object->ref." - ".$langs->trans('Card');
 if ($action == 'create') {
-	$title = $langs->trans("NewObject", $langs->transnoentitiesnoconv("Operation"));
+	$title = $langs->trans("NewObject", $langs->transnoentitiesnoconv("Creance"));
 }
-
-if($action == 'payer') {
-	$object->validate = 1;
-	$object->update($user);
-}
-
 $help_url = '';
 
 llxHeader('', $title, $help_url, '', 0, 0, '', '', '', 'mod-caissealimentation page-card');
@@ -338,11 +264,9 @@ if ($action == 'create') {
 
 	print load_fiche_titre($title, '', 'object_'.$object->picto);
 
-	print '<form id="formCreate" method="POST" action="'.$_SERVER["PHP_SELF"].'">';
+	print '<form method="POST" action="'.$_SERVER["PHP_SELF"].'">';
 	print '<input type="hidden" name="token" value="'.newToken().'">';
 	print '<input type="hidden" name="action" value="add">';
-	print '<input type="hidden" id="nb_produit" name="nb_produit" value="1">';
-	print '<input type="hidden" name="add_produit" value="1">';
 	if ($backtopage) {
 		print '<input type="hidden" name="backtopage" value="'.$backtopage.'">';
 	}
@@ -358,6 +282,7 @@ if ($action == 'create') {
 
 	print dol_get_fiche_head(array(), '');
 
+
 	print '<table class="border centpercent tableforfieldcreate">'."\n";
 
 	// Common attributes
@@ -370,30 +295,6 @@ if ($action == 'create') {
 
 	print dol_get_fiche_end();
 
-	dol_include_once('/product/class/product.class.php');
-	
-	// Générer une référence de base, par exemple avec un préfixe et une séquence numérique
-    $prefix = ''; // Par exemple, un préfixe pour identifier le type d'objet
-    $sql = "SELECT rowid FROM " . MAIN_DB_PREFIX . "caissealimentation_operation ORDER BY rowid DESC";
-    $resql = $db->query($sql);
-
-    if ($resql) {
-        $obj = $db->fetch_object($resql);
-        $next_ref = $obj->rowid + 1;
-        $generateref = $prefix . str_pad($next_ref, 6, '0', STR_PAD_LEFT);
-    } else {
-		$generateref = $prefix . '000001';
-    }
-	str_replace("REF", "", $generateref);
-
-	
-	print <<<EOD
-		<script>
-			$("#ref").val("$generateref");
-			$("#formCreate").submit()
-		</script>
-	EOD;
-
 	print $form->buttonsSaveCancel("Create");
 
 	print '</form>';
@@ -403,7 +304,7 @@ if ($action == 'create') {
 
 // Part to edit record
 if (($id || $ref) && $action == 'edit') {
-	print load_fiche_titre($langs->trans("Operation"), '', 'object_'.$object->picto);
+	print load_fiche_titre($langs->trans("Creance"), '', 'object_'.$object->picto);
 
 	print '<form method="POST" action="'.$_SERVER["PHP_SELF"].'">';
 	print '<input type="hidden" name="token" value="'.newToken().'">';
@@ -437,15 +338,15 @@ if (($id || $ref) && $action == 'edit') {
 
 // Part to show record
 if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'create'))) {
-	$head = operationPrepareHead($object);
+	$head = creancePrepareHead($object);
 
-	print dol_get_fiche_head($head, 'card', $langs->trans("Operation"), -1, $object->picto, 0, '', '', 0, '', 1);
+	print dol_get_fiche_head($head, 'card', $langs->trans("Creance"), -1, $object->picto, 0, '', '', 0, '', 1);
 
 	$formconfirm = '';
 
 	// Confirmation to delete (using preloaded confirm popup)
 	if ($action == 'delete' || ($conf->use_javascript_ajax && empty($conf->dol_use_jmobile))) {
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('DeleteOperation'), $langs->trans('ConfirmDeleteObject'), 'confirm_delete', '', 0, 'action-delete');
+		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"].'?id='.$object->id, $langs->trans('DeleteCreance'), $langs->trans('ConfirmDeleteObject'), 'confirm_delete', '', 0, 'action-delete');
 	}
 	// Confirmation to delete line
 	if ($action == 'deleteline') {
@@ -461,7 +362,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 	// Confirmation of action xxxx (You can use it for xxx = 'close', xxx = 'reopen', ...)
 	if ($action == 'xxx') {
-		$text = $langs->trans('ConfirmActionOperation', $object->ref);
+		$text = $langs->trans('ConfirmActionCreance', $object->ref);
 		/*if (isModEnabled('notification'))
 		{
 			require_once DOL_DOCUMENT_ROOT . '/core/class/notify.class.php';
@@ -500,7 +401,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 	// Object card
 	// ------------------------------------------------------------
-	$linkback = '<a href="'.dol_buildpath('/caissealimentation/operation_list.php', 1).'?restore_lastsearch_values=1'.(!empty($socid) ? '&socid='.$socid : '').'">'.$langs->trans("BackToList").'</a>';
+	$linkback = '<a href="'.dol_buildpath('/caissealimentation/creance_list.php', 1).'?restore_lastsearch_values=1'.(!empty($socid) ? '&socid='.$socid : '').'">'.$langs->trans("BackToList").'</a>';
 
 	$morehtmlref = '<div class="refidno">';
 	/*
@@ -539,6 +440,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 	dol_banner_tab($object, 'ref', $linkback, 1, 'ref', 'ref', $morehtmlref);
 
+
 	print '<div class="fichecenter">';
 	print '<div class="fichehalfleft">';
 	print '<div class="underbanner clearboth"></div>';
@@ -565,6 +467,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	/*
 	 * Lines
 	 */
+
 	if (!empty($object->table_element_line)) {
 		// Show object lines
 		$result = $object->getLinesArray();
@@ -614,11 +517,6 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print "</form>\n";
 	}
 
-	// include DOL_DOCUMENT_ROOT.'/core/tpl/commonfields_edit.tpl.php';
-	// include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_edit.tpl.php';
-	$client_id = $object->fk_soc;
-	print '<br>Client ID 1 : ' . $client_id;
-	OperationProduit::showTableToCreate($db, $object, $object->fk_soc);
 
 	// Buttons for actions
 
@@ -630,18 +528,15 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
 		}
 
-		print '<a class="butAction" href="'.dol_buildpath('/caissealimentation/generaterecu.php?type=telechargement&', 1).'id='.$object->id.'">Télécharger Reçu</a>';
-		print '<a target="_blank" class="butAction" href="'.dol_buildpath('/caissealimentation/generaterecu.php?type=impression&', 1).'id='.$object->id.'">Imprimer Reçu</a>';
-
 		if (empty($reshook)) {
 			// Send
 			if (empty($user->socid)) {
-				// print dolGetButtonAction('', $langs->trans('SendMail'), 'default', $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=presend&token='.newToken().'&mode=init#formmailbeforetitle');
+				print dolGetButtonAction('', $langs->trans('SendMail'), 'default', $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=presend&token='.newToken().'&mode=init#formmailbeforetitle');
 			}
 
 			// Back to draft
 			if ($object->status == $object::STATUS_VALIDATED) {
-				// print dolGetButtonAction('', $langs->trans('SetToDraft'), 'default', $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=confirm_setdraft&confirm=yes&token='.newToken(), '', $permissiontoadd);
+				print dolGetButtonAction('', $langs->trans('SetToDraft'), 'default', $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=confirm_setdraft&confirm=yes&token='.newToken(), '', $permissiontoadd);
 			}
 
 			// Modify
@@ -650,17 +545,16 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			// Validate
 			if ($object->status == $object::STATUS_DRAFT) {
 				if (empty($object->table_element_line) || (is_array($object->lines) && count($object->lines) > 0)) {
-					// print dolGetButtonAction('', $langs->trans('Validate'), 'default', $_SERVER['PHP_SELF'].'?id='.$object->id.'&action=confirm_validate&confirm=yes&token='.newToken(), '', $permissiontoadd);
+					print dolGetButtonAction('', $langs->trans('Validate'), 'default', $_SERVER['PHP_SELF'].'?id='.$object->id.'&action=confirm_validate&confirm=yes&token='.newToken(), '', $permissiontoadd);
 				} else {
 					$langs->load("errors");
-					// print dolGetButtonAction($langs->trans("ErrorAddAtLeastOneLineFirst"), $langs->trans("Validate"), 'default', '#', '', 0);
+					print dolGetButtonAction($langs->trans("ErrorAddAtLeastOneLineFirst"), $langs->trans("Validate"), 'default', '#', '', 0);
 				}
-				print dolGetButtonAction('', 'Payer', 'default', $_SERVER['PHP_SELF'].'?id='.$object->id.'&action=payer&token='.newToken(), '', $permissiontoadd);
 			}
 
 			// Clone
 			if ($permissiontoadd) {
-				// print dolGetButtonAction('', $langs->trans('ToClone'), 'default', $_SERVER['PHP_SELF'].'?id='.$object->id.(!empty($object->socid) ? '&socid='.$object->socid : '').'&action=clone&token='.newToken(), '', $permissiontoadd);
+				print dolGetButtonAction('', $langs->trans('ToClone'), 'default', $_SERVER['PHP_SELF'].'?id='.$object->id.(!empty($object->socid) ? '&socid='.$object->socid : '').'&action=clone&token='.newToken(), '', $permissiontoadd);
 			}
 
 			/*
@@ -703,8 +597,8 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	if ($action != 'presend') {
 		print '<div class="fichecenter"><div class="fichehalfleft">';
 		print '<a name="builddoc"></a>'; // ancre
-		
-		$includedocgeneration = 1;
+
+		$includedocgeneration = 0;
 
 		// Documents
 		if ($includedocgeneration) {
@@ -714,18 +608,19 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			$urlsource = $_SERVER["PHP_SELF"]."?id=".$object->id;
 			$genallowed = $permissiontoread; // If you can read, you can build the PDF to read content
 			$delallowed = $permissiontoadd; // If you can create/edit, you can remove a file on card
-			print $formfile->showdocuments('caissealimentation:Operation', $object->element.'/'.$objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang);
+			print $formfile->showdocuments('caissealimentation:Creance', $object->element.'/'.$objref, $filedir, $urlsource, $genallowed, $delallowed, $object->model_pdf, 1, 0, 0, 28, 0, '', '', '', $langs->defaultlang);
 		}
 
 		// Show links to link elements
-		$linktoelem = $form->showLinkToObjectBlock($object, null, array('operation'));
+		$linktoelem = $form->showLinkToObjectBlock($object, null, array('creance'));
 		$somethingshown = $form->showLinkedObjectBlock($object, $linktoelem);
+
 
 		print '</div><div class="fichehalfright">';
 
 		$MAXEVENT = 10;
 
-		$morehtmlcenter = dolGetButtonTitle($langs->trans('SeeAll'), '', 'fa fa-bars imgforviewmode', dol_buildpath('/caissealimentation/operation_agenda.php', 1).'?id='.$object->id);
+		$morehtmlcenter = dolGetButtonTitle($langs->trans('SeeAll'), '', 'fa fa-bars imgforviewmode', dol_buildpath('/caissealimentation/creance_agenda.php', 1).'?id='.$object->id);
 
 		// List of actions on element
 		include_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
@@ -741,10 +636,10 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	}
 
 	// Presend form
-	$modelmail = 'operation';
+	$modelmail = 'creance';
 	$defaulttopic = 'InformationMessage';
 	$diroutput = $conf->caissealimentation->dir_output;
-	$trackid = 'operation'.$object->id;
+	$trackid = 'creance'.$object->id;
 
 	include DOL_DOCUMENT_ROOT.'/core/tpl/card_presend.tpl.php';
 }

@@ -15,6 +15,9 @@ class PaiementOperation extends CommonObject
     public $fk_bank;             // ID du compte bancaire
     public $fk_operation;        // ID de l'opération associée
     public $statut;
+    public $sommeversee;
+    public $monnaie;
+    public $remise;
 
     public $label;               // Label du mode de paiement
 
@@ -27,7 +30,10 @@ class PaiementOperation extends CommonObject
         'fk_user_author' => array('type' => 'integer', 'label' => 'Author', 'enabled' => 1),
         'fk_bank' => array('type' => 'integer', 'label' => 'BankAccount', 'enabled' => 1),
         'fk_operation' => array('type' => 'integer', 'label' => 'Operation', 'enabled' => 1),
-        'statut' => array('type' => 'integer', 'label' => 'Status', 'enabled' => 1)
+        'statut' => array('type' => 'integer', 'label' => 'Status', 'enabled' => 1),
+        'sommeversee' => array('type' => 'integer', 'label' => 'Somme versée', 'enabled' => 1),
+        'monnaie' => array('type' => 'integer', 'label' => 'Monnaie', 'enabled' => 1),
+        'remise' => array('type' => 'integer', 'label' => 'Remise', 'enabled' => 1)
     );
 
     public function __construct($db)
@@ -41,8 +47,8 @@ class PaiementOperation extends CommonObject
      */
     public function create($db)
     {
-        $sql = "INSERT INTO ".MAIN_DB_PREFIX."paiementoperation (ref, amount, datep, fk_operation, fk_user_author, mode_paiement, statut)";
-        $sql .= " VALUES ('".$this->db->escape($this->ref)."', ".(float)$this->amount.", '".$this->db->idate($this->datep)."', ".$this->fk_operation.", ".$this->fk_user_author.", '".$this->mode_paiement."', ".$this->statut.");";
+        $sql = "INSERT INTO ".MAIN_DB_PREFIX."paiementoperation (ref, amount, datep, fk_operation, fk_user_author, mode_paiement, statut, sommeversee, monnaie, remise)";
+        $sql .= " VALUES ('".$this->db->escape($this->ref)."', ".(float)$this->amount.", '".$this->db->idate($this->datep)."', ".$this->fk_operation.", ".$this->fk_user_author.", '".$this->mode_paiement."', ".$this->statut.", ".$this->sommeversee.", ".$this->monnaie.", ".$this->remise.");";
 
         print '<br>SQL: ' . $sql;
         $resql = $this->db->query($sql);
@@ -80,6 +86,9 @@ class PaiementOperation extends CommonObject
             $this->fk_bank = $obj->fk_bank;
             $this->fk_operation = $obj->fk_operation;
             $this->statut = $obj->statut;
+            $this->sommeversee = $obj->sommeversee;
+            $this->monnaie = $obj->monnaie;
+            $this->remise = $obj->remise;
 
             return 1;
         } else {
@@ -100,7 +109,10 @@ class PaiementOperation extends CommonObject
         $sql .= " fk_user_author = ".$this->fk_user_author.",";
         $sql .= " fk_bank = ".$this->fk_bank.",";
         $sql .= " fk_operation = ".$this->fk_operation.",";
-        $sql .= " statut = ".$this->statut;
+        $sql .= " statut = ".$this->statut.",";
+        $sql .= " sommeversee = ".$this->sommeversee.",";
+        $sql .= " monnaie = ".$this->monnaie.",";
+        $sql .= " remise = ".$this->remise;
         $sql .= " WHERE rowid = ".$this->id;
 
         return $this->db->query($sql);
@@ -117,7 +129,7 @@ class PaiementOperation extends CommonObject
 
     public static function fetchByOperation($db, $operation_id)
     {
-        $sql = "SELECT po.rowid, po.ref, po.amount, po.datep, po.mode_paiement, po.fk_user_author, po.fk_bank, po.fk_operation, po.statut FROM " . MAIN_DB_PREFIX . "paiementoperation AS po
+        $sql = "SELECT po.rowid, po.ref, po.amount, po.datep, po.mode_paiement, po.fk_user_author, po.fk_bank, po.fk_operation, po.statut, po.sommeversee, po.monnaie, po.remise FROM " . MAIN_DB_PREFIX . "paiementoperation AS po
         WHERE fk_operation=" . $operation_id;
         $resql = $db->query($sql);
 
@@ -135,6 +147,9 @@ class PaiementOperation extends CommonObject
                 $paiement->fk_bank = $obj->fk_bank;
                 $paiement->fk_operation = $obj->fk_operation;
                 $paiement->statut = $obj->statut;
+                $paiement->sommeversee = $obj->sommeversee;
+                $paiement->monnaie = $obj->monnaie;
+                $paiement->remise = $obj->remise;
 
                 $objects[] = $paiement;
             }
