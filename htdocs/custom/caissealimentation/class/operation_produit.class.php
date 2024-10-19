@@ -233,6 +233,38 @@ class OperationProduit
 
             print '</form>';
 
+            $newToken = newToken();
+            $formecheance = <<<EOD
+                <div class="" style="margin-top: 30px; margin-bottom: 20px">
+                    <h4>Echéance fractionnée</h4>
+                    <button id="add_echeance" class="butAction" style="margin-left:5px; margin-bottom:10px;">Ajouter</button>
+                    <form id="form_save_echeance" method="POST" action="save_echeance.php">
+                        <input hidden name="action" value="saveecheance" />
+                        <input hidden name="token" value="$newToken" />
+                        <input hidden name="id" value="$object->id" />
+                        <input hidden name="nbecheance" value="1" />
+                        <table class="border tableforfieldcreate">
+                            <tbody id="echeance_body">
+                                <tr class="liste_titre nodrag nodrop">
+                                    <th>Date</th>
+                                    <th>Montant</th>
+                                </tr>
+                                <tr class="field_ref">
+                                    <td>
+                                        <input type="date" class="flat minwidth400 --success" value="" name="dateecheance_1">
+                                    </td>
+                                    <td>
+                                        <input type="number" class="flat minwidth400 --success" value="" name="montantecheance_1">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button id="save_echeance" class="butAction" style="margin-left:5px; margin-bottom:10px;">Enregistrer</button>
+                    </form>
+                </div>
+            EOD;
+            print $formecheance;
+
             // formulaire de paiement
             print '<form method="POST" action="save_paiement.php">';
             // print '<form method="POST" action="'.dol_buildpath('/caissealimentation/save_product.php', 1).'?id='.$object->id.'">';
@@ -305,125 +337,121 @@ class OperationProduit
             $format_total_generale = number_format($total_generale, 0, '.', ' ');
             $format_paiementmontant = number_format($paiementmontant, 0, '.', ' ');
             $format_resteapayer = number_format($resteapayer, 0, '.', ' ');
-            if($paiementmontant < $total_generale) $tablechamppaiement = <<<EOD
-                <!--<span style="margin-left:3px;">Reste à payer : $resteapayer </span><br>-->
-                
-                <div class="hidden" style="margin-top: 30px; margin-bottom: 20px">
-                    <h4>Echance fractionnée</h4>
-                    <button id="add_echeance" class="butAction" style="margin-left:5px; margin-bottom:10px;">Ajouter</button>
-                    <table class="border tableforfieldcreate">
-                        <tbody>
-                            <tr class="liste_titre nodrag nodrop">
-                                <th>Date</th>
-                                <th>Montant</th>
-                            </tr>
-                            <tr class="field_ref">
-                                <td>
-                                    <input type="date" class="flat minwidth400 --success" value="" name="date_echeance">
-                                </td>
-                                <td>
-                                    <input type="number" class="flat minwidth400 --success" value="" name="montant_echeance">
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div style="margin-top: 26px;" class="container">
-                    <div class="column">
-                        <div id="message_client_obligatoire" class="hidden" style="margin: 10px; color: red;">
-                            Veuillez enregistrer les informations du client avant de poursuivre les opérations
+            $newToken = newToken();
+            if($paiementmontant < $total_generale) {
+                $sqlecheance = "SELECT * FROM " . MAIN_DB_PREFIX . "caissealimentation_echeancepaiement";
+                $resql = $db->query($sqlecheance);
+                if($resql) {
+                    $lignesecheance = '<tr class="field_ref">';
+                    while($row = $db->fetch_array($resql)) {
+                        $lignesecheance .= '<td>';
+                        $lignesecheance .= '<input type="date" class="flat minwidth400 --success" value="'.$row->date.'" name="updatedateecheance_1"';
+                        $lignesecheance .= '</td>';
+                        $lignesecheance .= '<td>';
+                        $lignesecheance .= '<input type="number" class="flat minwidth400 --success" value="'.$row->montant.'" name="updatemontantecheance_1">';
+                        $lignesecheance .= '</td>';
+                    }
+                    $lignesecheance = '</tr>';
+                }
+                $tablechamppaiement = <<<EOD
+                    <!--<span style="margin-left:3px;">Reste à payer : $resteapayer </span><br>-->
+                    
+                    <div style="margin-top: 26px;" class="container">
+                        <div class="column">
+                            <div id="message_client_obligatoire" class="hidden" style="margin: 10px; color: red;">
+                                Veuillez enregistrer les informations du client avant de poursuivre les opérations
+                            </div>
+                            <table class="border tableforfieldcreate">
+                                <tbody>
+                                    <tr class="field_ref">
+                                        <td>Type de paiement</td>
+                                        <td>
+                                            <input $disabledradiocomptant type="radio" class="comptant_credit" name="comptant_credit" value="comptant" /> Au comptant<br>
+                                            <input $radiocredit type="radio" class="comptant_credit" name="comptant_credit" value="credit" /> Crédit
+                                        </td>
+                                    </tr>
+                                    <!--<tr class="field_ref">
+                                        <td>$modepaiementinput</td>
+                                        <td class="valuefieldcreate">
+                                            <input type="number" max="$resteapayer" class="flat minwidth400 --success" value="$resteapayer" name="" id="" placeholder="Saisir montant à payer">
+                                        </td>
+                                    </tr>-->
+                                    <tr class="field_ref">
+                                        <td>Montant total $modepaiementinput</td>
+                                        <td class="valuefieldcreate">
+                                            <input type="text" class="flat minwidth400 --success" value="$format_total_generale" name="" id="montant-total" disabled>
+                                        </td>
+                                    </tr>
+                                    <tr class="field_ref input-credit $hiddeinput">
+                                        <td>Montant déjà payé</td>
+                                        <td class="valuefieldcreate">
+                                            <input type="text" class="flat minwidth400 --success" value="$format_paiementmontant" name="" id="" disabled>
+                                        </td>
+                                    </tr>
+                                    <tr class="field_ref input-credit $hiddeinput">
+                                        <td>Reste à payer</td>
+                                        <td class="valuefieldcreate">
+                                            <input type="text" class="flat minwidth400 --success" value="$format_resteapayer" name="" id="reste-a-payer" disabled>
+                                        </td>
+                                    </tr>
+                                    <tr class="field_ref">
+                                        <td>Type remise</td>
+                                        <td class="valuefieldcreate">
+                                            <input checked type="radio" class="remise_radio" name="remise_radio" value="nominale" />Nominale  <br>
+                                            <input type="radio" class="remise_radio" name="remise_radio" value="pourcentage" />Pourcentage 
+                                        </td>
+                                    </tr>
+                                    <tr class="field_ref">
+                                        <td>Remise <span id="pourcentage" class="hidden">(%)</span></td>
+                                        <td class="valuefieldcreate">
+                                            <input id="remise" type="number" class="flat minwidth400 --success" max="$resteapayer" value="0" name="remise">
+                                        </td>
+                                    </tr>
+                                    <tr class="field_ref">
+                                        <td>Montant à payer</td>
+                                        <td class="valuefieldcreate">
+                                            <input id="montantpayecredit" type="hidden" class="flat minwidth400 --success" max="$resteapayer" value="$resteapayer" name="montantApayer">
+                                            <input id="montantpaye" type="number" class="flat minwidth400 --success" max="$resteapayer" value="$resteapayer" $disablemontanpaye>
+                                        </td>
+                                    </tr>
+                                    <tr class="field_ref input-credit $hiddeinput">
+                                        <td>Echeance</td>
+                                        <td class="valuefieldcreate">
+                                            <input type="date" class="flat minwidth400 --success" value="" name="echeance">
+                                        </td>
+                                    </tr>
+                                    <tr class="field_ref">
+                                        <td class="valuefieldcreate">
+                                            <!--<button id="payer_facture" class="butAction" style="margin-left:5px;">Payer</button>-->
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        <table class="border tableforfieldcreate">
-                            <tbody>
-                                <tr class="field_ref">
-                                    <td>Type de paiement</td>
-                                    <td>
-                                        <input $disabledradiocomptant type="radio" class="comptant_credit" name="comptant_credit" value="comptant" /> Au comptant<br>
-                                        <input $radiocredit type="radio" class="comptant_credit" name="comptant_credit" value="credit" /> Crédit
-                                    </td>
-                                </tr>
-                                <!--<tr class="field_ref">
-                                    <td>$modepaiementinput</td>
-                                    <td class="valuefieldcreate">
-                                        <input type="number" max="$resteapayer" class="flat minwidth400 --success" value="$resteapayer" name="" id="" placeholder="Saisir montant à payer">
-                                    </td>
-                                </tr>-->
-                                <tr class="field_ref">
-                                    <td>Montant total $modepaiementinput</td>
-                                    <td class="valuefieldcreate">
-                                        <input type="text" class="flat minwidth400 --success" value="$format_total_generale" name="" id="montant-total" disabled>
-                                    </td>
-                                </tr>
-                                <tr class="field_ref input-credit $hiddeinput">
-                                    <td>Montant déjà payé</td>
-                                    <td class="valuefieldcreate">
-                                        <input type="text" class="flat minwidth400 --success" value="$format_paiementmontant" name="" id="" disabled>
-                                    </td>
-                                </tr>
-                                <tr class="field_ref input-credit $hiddeinput">
-                                    <td>Reste à payer</td>
-                                    <td class="valuefieldcreate">
-                                        <input type="text" class="flat minwidth400 --success" value="$format_resteapayer" name="" id="reste-a-payer" disabled>
-                                    </td>
-                                </tr>
-                                <tr class="field_ref">
-                                    <td>Montant à payer</td>
-                                    <td class="valuefieldcreate">
-                                        <input id="montantpayecredit" type="hidden" class="flat minwidth400 --success" max="$resteapayer" value="$resteapayer" name="montantApayer">
-                                        <input id="montantpaye" type="number" class="flat minwidth400 --success" max="$resteapayer" value="$resteapayer" $disablemontanpaye>
-                                    </td>
-                                </tr>
-                                <tr class="field_ref">
-                                    <td>Type remise</td>
-                                    <td class="valuefieldcreate">
-                                        <input checked type="radio" class="remise_radio" name="remise_radio" value="nominale" />Nominale  <br>
-                                        <input type="radio" class="remise_radio" name="remise_radio" value="pourcentage" />Pourcentage 
-                                    </td>
-                                </tr>
-                                <tr class="field_ref">
-                                    <td>Remise <span id="pourcentage" class="hidden">(%)</span></td>
-                                    <td class="valuefieldcreate">
-                                        <input id="remise" type="number" class="flat minwidth400 --success" max="$resteapayer" value="0" name="remise">
-                                    </td>
-                                </tr>
-                                <tr class="field_ref input-credit $hiddeinput">
-                                    <td>Echeance</td>
-                                    <td class="valuefieldcreate">
-                                        <input type="date" class="flat minwidth400 --success" value="" name="echeance">
-                                    </td>
-                                </tr>
-                                <tr class="field_ref">
-                                    <td class="valuefieldcreate">
-                                        <!--<button id="payer_facture" class="butAction" style="margin-left:5px;">Payer</button>-->
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div>
+                            <table class="border tableforfieldcreate">
+                                <tbody>
+                                    <tr></tr>
+                                    <tr class="field_ref">
+                                        <td>Somme versée</td>
+                                        <td class="valuefieldcreate">
+                                            <input id="somme-versee" type="number" class="flat minwidth400 --success" min="$resteapayer" value="$resteapayer" name="somme-versee">
+                                        </td>
+                                    </tr>
+                                    <tr class="field_ref">
+                                        <td>Monnaie</td>
+                                        <td class="valuefieldcreate">
+                                            <input id="monnaie" type="number" class="flat minwidth400 --success" value="$resteapayer" disabled>
+                                            <input id="monnaie-hidden" type="hidden" class="flat minwidth400 --success" value="$resteapayer" name="monnaie">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div>
-                        <table class="border tableforfieldcreate">
-                            <tbody>
-                                <tr></tr>
-                                <tr class="field_ref">
-                                    <td>Somme versée</td>
-                                    <td class="valuefieldcreate">
-                                        <input id="somme-versee" type="number" class="flat minwidth400 --success" min="$resteapayer" value="$resteapayer" name="somme-versee">
-                                    </td>
-                                </tr>
-                                <tr class="field_ref">
-                                    <td>Monnaie</td>
-                                    <td class="valuefieldcreate">
-                                        <input id="monnaie" type="number" class="flat minwidth400 --success" value="$resteapayer" disabled>
-                                        <input id="monnaie-hidden" type="hidden" class="flat minwidth400 --success" value="$resteapayer" name="monnaie">
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <button id="payer_facture" class="butAction" style="margin-left:5px;">Payer</button>
-            EOD;
+                    <button id="payer_facture" class="butAction" style="margin-left:5px;">Payer</button>
+                EOD;
+            }
 
             $stylecss = <<<EOD
                 <style>
@@ -833,6 +861,28 @@ class OperationProduit
                         $("#remise").val(0);
                         updateMontant();
                     });
+
+                    var indexecheance = 1;
+                    $("#add_echeance").click(event => {
+                        event.preventDefault();
+                        $("#echeance_body").append(`
+                            <tr class="field_ref">
+                                <td>
+                                    <input type="date" class="flat minwidth400 --success" value="" name="dateecheance_\${indexecheance}">
+                                </td>
+                                <td>
+                                    <input type="number" class="flat minwidth400 --success" value="" name="montantecheance_\${indexecheance}">
+                                </td>
+                            </tr>
+                        `);
+                        indexecheance++;
+                    });
+
+                    // $("#save_echeance").click(event => {
+                    //     event.preventDefault();
+                    //     console.log("save echeance");
+                    //     $("form#form_save_echeance").submit();
+                    // });
 
                     eventChange();
                 </script>
