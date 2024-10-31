@@ -108,6 +108,7 @@ $fk_soc = GETPOST('fk_soc', 'int');
 $selectclient = GETPOST('selectclient', 'int');
 $nom_client = GETPOST('nom_client', 'alpha');
 $telephone_client = GETPOST('telephone_client', 'alpha');
+$save_echeance = GETPOST('save_echeance', 'alpha');
 
 if (!empty($backtopagejsfields)) {
 	$tmpbacktopagejsfields = explode(':', $backtopagejsfields);
@@ -617,7 +618,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	// include DOL_DOCUMENT_ROOT.'/core/tpl/commonfields_edit.tpl.php';
 	// include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_edit.tpl.php';
 	$client_id = $object->fk_soc;
-	OperationProduit::showTableToCreate($db, $object, $object->fk_soc);
+	OperationProduit::showTableToCreate($db, $object, $object->fk_soc, $save_echeance);
 
 	// Buttons for actions
 
@@ -644,7 +645,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			}
 
 			// Modify
-			print dolGetButtonAction('', $langs->trans('Modify'), 'default', $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=edit&token='.newToken(), '', $permissiontoadd);
+			// print dolGetButtonAction('', $langs->trans('Modify'), 'default', $_SERVER["PHP_SELF"].'?id='.$object->id.'&action=edit&token='.newToken(), '', $permissiontoadd);
 
 			// Validate
 			if ($object->status == $object::STATUS_DRAFT) {

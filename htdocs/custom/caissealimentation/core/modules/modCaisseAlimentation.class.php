@@ -376,7 +376,8 @@ class modCaisseAlimentation extends DolibarrModules
 			 'titre' => 'Nouvelle Vente',
 			 'mainmenu' => 'caissealimentation',
 			 'leftmenu' => 'caissealimentation_operation_new',
-			 'url' => '/caissealimentation/operation_card.php?action=create',
+			//  'url' => '/caissealimentation/operation_card.php?action=create',
+			'url' => '/caissealimentation/operation_create.php',
 			 'langs' => 'caissealimentation@caissealimentation',
 			 'position' => 1000 + $r,
 			 'enabled' => 'isModEnabled(\'caissealimentation\')',
@@ -402,57 +403,57 @@ class modCaisseAlimentation extends DolibarrModules
 			 'user' => 2,
 			 'object' => '',
 		);
-		/* END MODULEBUILDER LEFTMENU SATISTIQUE VENTE */
-		/* BEGIN MODULEBUILDER LEFTMENU MODEPAIEMENT */
-		$this->menu[$r++]=array(
-			 'fk_menu' => 'fk_mainmenu=caissealimentation',
-			 'type' => 'left',
-			 'titre' => 'Mode Paiement',
-			 'mainmenu' => 'caissealimentation',
-			 'leftmenu' => 'modepaiement',
-			 'url' => '/caissealimentation/modepaiement_list.php',
-			 'langs' => 'caissealimentation@caissealimentation',
-			 'position' => 1000 + $r,
-			 'enabled' => 'isModEnabled(\'caissealimentation\')',
-			 'perms' => '1',
-			 'target' => '',
-			 'user' => 2,
-			 'object' => 'ModePaiement',
-		);
-		/* END MODULEBUILDER LEFTMENU MODEPAIEMENT */
-		/* BEGIN MODULEBUILDER LEFTMENU LIST MODE PAIEMENT */
-		$this->menu[$r++]=array(
-			 'fk_menu' => 'fk_mainmenu=caissealimentation,fk_leftmenu=modepaiement',
-			 'type' => 'left',
-			 'titre' => 'Liste Mode Paiement',
-			 'mainmenu' => 'caissealimentation',
-			 'leftmenu' => 'caissealimentation_modepaiement_list',
-			 'url' => '/caissealimentation/modepaiement_list.php',
-			 'langs' => 'caissealimentation@caissealimentation',
-			 'position' => 1000 + $r,
-			 'enabled' => 'isModEnabled(\'caissealimentation\')',
-			 'perms' => '1',
-			 'target' => '',
-			 'user' => 2,
-			 'object' => '',
-		);
-		/* END MODULEBUILDER LEFTMENU LIST MODE PAIEMENT */
-		/* BEGIN MODULEBUILDER LEFTMENU NOUVEAU MODE PAIEMENT */
-		$this->menu[$r++]=array(
-			 'fk_menu' => 'fk_mainmenu=caissealimentation,fk_leftmenu=modepaiement',
-			 'type' => 'left',
-			 'titre' => 'Nouveau Mode Paiement',
-			 'mainmenu' => 'caissealimentation',
-			 'leftmenu' => 'caissealimentation_modepaiement_new',
-			 'url' => '/caissealimentation/modepaiement_card.php?action=create',
-			 'langs' => 'caissealimentation@caissealimentation',
-			 'position' => 1000 + $r,
-			 'enabled' => 'isModEnabled(caissealimentation)',
-			 'perms' => '1',
-			 'target' => '',
-			 'user' => 2,
-			 'object' => '',
-		);
+		// /* END MODULEBUILDER LEFTMENU SATISTIQUE VENTE */
+		// /* BEGIN MODULEBUILDER LEFTMENU MODEPAIEMENT */
+		// $this->menu[$r++]=array(
+		// 	 'fk_menu' => 'fk_mainmenu=caissealimentation',
+		// 	 'type' => 'left',
+		// 	 'titre' => 'Mode Paiement',
+		// 	 'mainmenu' => 'caissealimentation',
+		// 	 'leftmenu' => 'modepaiement',
+		// 	 'url' => '/caissealimentation/modepaiement_list.php',
+		// 	 'langs' => 'caissealimentation@caissealimentation',
+		// 	 'position' => 1000 + $r,
+		// 	 'enabled' => 'isModEnabled(\'caissealimentation\')',
+		// 	 'perms' => '1',
+		// 	 'target' => '',
+		// 	 'user' => 2,
+		// 	 'object' => 'ModePaiement',
+		// );
+		// /* END MODULEBUILDER LEFTMENU MODEPAIEMENT */
+		// /* BEGIN MODULEBUILDER LEFTMENU LIST MODE PAIEMENT */
+		// $this->menu[$r++]=array(
+		// 	 'fk_menu' => 'fk_mainmenu=caissealimentation,fk_leftmenu=modepaiement',
+		// 	 'type' => 'left',
+		// 	 'titre' => 'Liste Mode Paiement',
+		// 	 'mainmenu' => 'caissealimentation',
+		// 	 'leftmenu' => 'caissealimentation_modepaiement_list',
+		// 	 'url' => '/caissealimentation/modepaiement_list.php',
+		// 	 'langs' => 'caissealimentation@caissealimentation',
+		// 	 'position' => 1000 + $r,
+		// 	 'enabled' => 'isModEnabled(\'caissealimentation\')',
+		// 	 'perms' => '1',
+		// 	 'target' => '',
+		// 	 'user' => 2,
+		// 	 'object' => '',
+		// );
+		// /* END MODULEBUILDER LEFTMENU LIST MODE PAIEMENT */
+		// /* BEGIN MODULEBUILDER LEFTMENU NOUVEAU MODE PAIEMENT */
+		// $this->menu[$r++]=array(
+		// 	 'fk_menu' => 'fk_mainmenu=caissealimentation,fk_leftmenu=modepaiement',
+		// 	 'type' => 'left',
+		// 	 'titre' => 'Nouveau Mode Paiement',
+		// 	 'mainmenu' => 'caissealimentation',
+		// 	 'leftmenu' => 'caissealimentation_modepaiement_new',
+		// 	 'url' => '/caissealimentation/modepaiement_card.php?action=create',
+		// 	 'langs' => 'caissealimentation@caissealimentation',
+		// 	 'position' => 1000 + $r,
+		// 	 'enabled' => 'isModEnabled(caissealimentation)',
+		// 	 'perms' => '1',
+		// 	 'target' => '',
+		// 	 'user' => 2,
+		// 	 'object' => '',
+		// );
 		/* END MODULEBUILDER LEFTMENU NOUVEAU MODE PAIEMENT */
 
 		/* BEGIN MODULEBUILDER LEFTMENU CREANCE */
@@ -487,21 +488,21 @@ class modCaisseAlimentation extends DolibarrModules
 			'user'=>2,
 			'object'=>'Creance'
         );
-		$this->menu[$r++]=array(
-			'fk_menu'=>'fk_mainmenu=caissealimentation,fk_leftmenu=creance',
-			'type'=>'left',
-			'titre'=>'Nouvelle Créance',
-			'mainmenu'=>'caissealimentation',
-			'leftmenu'=>'caissealimentation_creance_new',
-			'url'=>'/caissealimentation/creance_card.php?action=create',
-			'langs'=>'caissealimentation@caissealimentation',
-			'position'=>1000+$r,
-			'enabled'=>'isModEnabled("caissealimentation")',
-			'perms'=>'1',
-			'target'=>'',
-			'user'=>2,
-			'object'=>'Creance'
-		);
+		// $this->menu[$r++]=array(
+		// 	'fk_menu'=>'fk_mainmenu=caissealimentation,fk_leftmenu=creance',
+		// 	'type'=>'left',
+		// 	'titre'=>'Nouvelle Créance',
+		// 	'mainmenu'=>'caissealimentation',
+		// 	'leftmenu'=>'caissealimentation_creance_new',
+		// 	'url'=>'/caissealimentation/creance_card.php?action=create',
+		// 	'langs'=>'caissealimentation@caissealimentation',
+		// 	'position'=>1000+$r,
+		// 	'enabled'=>'isModEnabled("caissealimentation")',
+		// 	'perms'=>'1',
+		// 	'target'=>'',
+		// 	'user'=>2,
+		// 	'object'=>'Creance'
+		// );
 		/* END MODULEBUILDER LEFTMENU CREANCE */
 		/* BEGIN MODULEBUILDER LEFTMENU MYOBJECT */
 		/*

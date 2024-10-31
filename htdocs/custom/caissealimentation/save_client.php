@@ -48,6 +48,7 @@ $backpage = GETPOST('backpage', 'alpha');
 $selectclient = GETPOST('selectclient', 'int');
 $nom_client = GETPOST('nom_client', 'alpha');
 $telephone_client = GETPOST('telephone_client', 'alpha');
+$suite_echeance = GETPOST('suite_echeance', 'alpha');
 
 print 'ID: ' . $id;
 
@@ -76,4 +77,8 @@ if($action == "selectclient") {
 $db->close();
     
 // Rediriger immédiatement vers la liste des factures
-header('Location: ' . DOL_URL_ROOT . '/custom/caissealimentation/operation_card.php?id='.$id);
+if($suite_echeance && $suite_echeance == 'echeance') {
+	header('Location: ' . DOL_URL_ROOT . '/custom/caissealimentation/operation_card.php?suite_echeance=echeance&id='.$id);
+} else {
+	header('Location: ' . DOL_URL_ROOT . '/custom/caissealimentation/operation_card.php?id='.$id);
+}

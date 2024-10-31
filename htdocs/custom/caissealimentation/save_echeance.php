@@ -44,16 +44,37 @@ dol_include_once('/caissealimentation/class/echeancepaiement.class.php');
 
 $id = GETPOSTINT('id');
 $nbecheance = GETPOSTINT('nbecheance');
+$nbupdateecheance = GETPOSTINT('nbupdateecheance');
+print 'nbupdateecheance: ' . $nbupdateecheance;
+
 for($i = 1; $i <= $nbecheance; $i++) {
 	$echeance = new EcheancePaiement($db);
 	$dateecheance = GETPOST('dateecheance_'.$i, 'alpha');
 	$montantecheance = GETPOST('montantecheance_'.$i, 'alpha');
-	$echeance->date = $dateecheance;
-	$echeance->montant = $montantecheance;
-	$echeance->opration = $id;
-	$echeance->create($user);
+	if($dateecheance && $dateecheance != "" && $montantecheance && $montantecheance != "") {
+		$echeance->date = $dateecheance;
+		$echeance->montant = $montantecheance;
+		$echeance->opration = $id;
+		$echeance->create($user);
+	}
+}
+
+for($i = 1; $i <= $nbupdateecheance; $i++) {
+	$echeance = new EcheancePaiement($db);
+	$idecheance = GETPOSTINT('updateidecheance_'.$i,);
+	print '<br>Id echeance update : ' . $idecheance;
+	$echeance->fetch($idecheance);
+	$dateecheance = GETPOST('updatedateecheance_'.$i, 'alpha');
+	$montantecheance = GETPOST('updatemontantecheance_'.$i, 'alpha');
+	if($dateecheance && $dateecheance != "" && $montantecheance && $montantecheance != "") {
+		print '<br>Date echeance update : ' . $dateecheance;
+		print '<br>Montant echeance update : ' . $montantecheance;
+		$echeance->date = $dateecheance;
+		$echeance->montant = $montantecheance;
+		$echeance->update($user);
+	}
 }
 
 $db->close();
 
-// header('Location: ' . DOL_URL_ROOT . '/custom/caissealimentation/operation_card.php?id='.$id);
+header('Location: ' . DOL_URL_ROOT . '/custom/caissealimentation/operation_card.php?save_echeance=enregistrement&id='.$id);

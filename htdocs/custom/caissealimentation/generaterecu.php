@@ -129,13 +129,13 @@ if ($resql) {
 }
 
 // Chemin pour enregistrer le PDF
-$filename = DOL_DATA_ROOT . '/caissealimentation/temp/'.$object->ref.'.pdf';
+$filename = DOL_DATA_ROOT . '/caissealimentation/temp/'.date("Y-m-d").'-'.$object->ref.'.pdf';
 $pdf->Output($filename, 'F'); // Sauvegarde le PDF sur le serveur
 
 if($type == 'telechargement') {
     // Proposer le téléchargement du fichier
     header('Content-Type: application/pdf');
-    header('Content-Disposition: attachment;filename="'.$object->ref.'.pdf"');
+    header('Content-Disposition: attachment;filename="'.date("Y-m-d").'-'.$object->ref.'.pdf"');
     // readfile($filename);
     // Générer le PDF en mémoire et le préparer pour téléchargement
     $pdf->Output($filename, 'D');

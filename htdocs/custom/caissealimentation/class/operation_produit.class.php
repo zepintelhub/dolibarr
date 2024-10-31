@@ -126,7 +126,7 @@ class OperationProduit
         return $objects;
     }
 
-    public static function showTableToCreate($db, $object, $client_id = null) {
+    public static function showTableToCreate($db, $object, $client_id = null, $save_echeance = null) {
         if($object->id) {
             $operationProduits = OperationProduit::fetchByOperation($db, $object->id);
             print '<form method="POST" action="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'">';
@@ -234,39 +234,83 @@ class OperationProduit
             print '</form>';
 
             $newToken = newToken();
+            $sqlecheance = "SELECT * FROM " . MAIN_DB_PREFIX . "caissealimentation_echeancepaiement WHERE opration=".$object->id;
+            $resql = $db->query($sqlecheance);
+            $lignesecheance = "";
+            $selectecheance = "<select name='selectecheance' id='selectecheance'>";
+            $indexecheance = 0;
+            if($resql) {
+                while($row = $db->fetch_array($resql)) {
+                    $indexecheance++;
+                    $lignesecheance .= '<tr id="ligne_update_'.$indexecheance.'" class="field_ref">';
+                    $lignesecheance .= '<td>';
+                    $lignesecheance .= '<input type="date" class="flat minwidth400 --success input-date-echeance" value="'.$row['date'].'" name="updatedateecheance_'.$indexecheance.'">';
+                    $lignesecheance .= '<input type="hidden" value="'.$row['rowid'].'" name="updateidecheance_'.$indexecheance.'">';
+                    $lignesecheance .= '</td>';
+                    $lignesecheance .= '<td>';
+                    $lignesecheance .= '<input type="number" class="flat minwidth400 --success input-montant-echeance" value="'.(int)$row['montant'].'" name="updatemontantecheance_'.$indexecheance.'">';
+                    $lignesecheance .= '</td>';
+                    $lignesecheance .= '<td>';
+                    $lignesecheance .= '<a href="delete_echeance.php?echeanceid='.$row['rowid'].'&id='.$object->id.'" data-index="'.$indexecheance.'" class="delete_update_echeance flat butAction">Supprimer</button>';
+                    $lignesecheance .= '</td>';
+                    $lignesecheance .= '</tr>';
+
+                    $selectecheance .= '<option value="'.$row['montant'].'">'.$row['date'].' - '.(int)$row['montant'].' FCFA</option>';
+                }
+            } else {
+                print '<br>Rollback: ' . $db->lasterror();
+            }
+            $selectecheance .= "</select>";
             $formecheance = <<<EOD
-                <div class="" style="margin-top: 30px; margin-bottom: 20px">
+
+                <div id="message-echeancier" class="card" style="width: 80%; padding: 30px; margin: 30px;">
+                    Voulez-vous definir des écheances de paiement ou passer à un paiement de crédit directe.
+                    <br><br>
+                    <button id="btn_add_echeancier" class="butAction" style="margin-left:5px; margin-bottom:10px;">Echeancier</button>
+                    <button id="btn_credit_directe" class="butAction" style="margin-left:5px; margin-bottom:10px;">Crédit directe</button>
+                </div>
+                
+                <div id="form_save_echeance" class="" style="margin-top: 30px; margin-bottom: 20px">
                     <h4>Echéance fractionnée</h4>
                     <button id="add_echeance" class="butAction" style="margin-left:5px; margin-bottom:10px;">Ajouter</button>
-                    <form id="form_save_echeance" method="POST" action="save_echeance.php">
+                    
+                    <form method="POST" action="save_echeance.php">
                         <input hidden name="action" value="saveecheance" />
                         <input hidden name="token" value="$newToken" />
                         <input hidden name="id" value="$object->id" />
                         <input hidden name="nbecheance" value="1" />
+                        <input hidden id="nbupdateecheance" name="nbupdateecheance" value="0" />
                         <table class="border tableforfieldcreate">
                             <tbody id="echeance_body">
                                 <tr class="liste_titre nodrag nodrop">
                                     <th>Date</th>
                                     <th>Montant</th>
+                                    <th>Action</th>
                                 </tr>
+                                $lignesecheance
                                 <tr class="field_ref">
                                     <td>
-                                        <input type="date" class="flat minwidth400 --success" value="" name="dateecheance_1">
+                                        <input type="date" class="flat minwidth400 --success input-date-echeance" value="" name="dateecheance_1">
                                     </td>
                                     <td>
-                                        <input type="number" class="flat minwidth400 --success" value="" name="montantecheance_1">
+                                        <input type="number" class="flat minwidth400 --success input-montant-echeance" value="" name="montantecheance_1">
+                                    </td>
+                                    <td>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
+                        <div id="message-total-echeance" style="color: red; text-align: center; margin: 20px;">Le montant total des écheances est supérieur au montant à payer</div>
                         <button id="save_echeance" class="butAction" style="margin-left:5px; margin-bottom:10px;">Enregistrer</button>
+                        <button id="annuler_echeance" class="butAction" style="margin-left:5px; margin-bottom:10px;">Annuler</button>
+                        <button id="continuer_echeance" class="butAction" style="margin-left:5px; margin-bottom:10px;">Continer Paiement</button>
                     </form>
                 </div>
             EOD;
             print $formecheance;
 
             // formulaire de paiement
-            print '<form method="POST" action="save_paiement.php">';
+            print '<form id="save_paiement" method="POST" action="save_paiement.php">';
             // print '<form method="POST" action="'.dol_buildpath('/caissealimentation/save_product.php', 1).'?id='.$object->id.'">';
             print '<input type="hidden" name="token" value="'.newToken().'">';
             print '<input type="hidden" name="id" value="'.$object->id.'">';
@@ -339,28 +383,19 @@ class OperationProduit
             $format_resteapayer = number_format($resteapayer, 0, '.', ' ');
             $newToken = newToken();
             if($paiementmontant < $total_generale) {
-                $sqlecheance = "SELECT * FROM " . MAIN_DB_PREFIX . "caissealimentation_echeancepaiement";
-                $resql = $db->query($sqlecheance);
-                if($resql) {
-                    $lignesecheance = '<tr class="field_ref">';
-                    while($row = $db->fetch_array($resql)) {
-                        $lignesecheance .= '<td>';
-                        $lignesecheance .= '<input type="date" class="flat minwidth400 --success" value="'.$row->date.'" name="updatedateecheance_1"';
-                        $lignesecheance .= '</td>';
-                        $lignesecheance .= '<td>';
-                        $lignesecheance .= '<input type="number" class="flat minwidth400 --success" value="'.$row->montant.'" name="updatemontantecheance_1">';
-                        $lignesecheance .= '</td>';
-                    }
-                    $lignesecheance = '</tr>';
-                }
+                $trselectecheance = $indexecheance > 0 ? <<<EOD
+                    <tr class="field_ref">
+                        <td>Echéance</td>
+                        <td class="valuefieldcreate">
+                            $selectecheance
+                        </td>
+                    </tr>
+                EOD : "";
                 $tablechamppaiement = <<<EOD
                     <!--<span style="margin-left:3px;">Reste à payer : $resteapayer </span><br>-->
                     
                     <div style="margin-top: 26px;" class="container">
                         <div class="column">
-                            <div id="message_client_obligatoire" class="hidden" style="margin: 10px; color: red;">
-                                Veuillez enregistrer les informations du client avant de poursuivre les opérations
-                            </div>
                             <table class="border tableforfieldcreate">
                                 <tbody>
                                     <tr class="field_ref">
@@ -376,6 +411,7 @@ class OperationProduit
                                             <input type="number" max="$resteapayer" class="flat minwidth400 --success" value="$resteapayer" name="" id="" placeholder="Saisir montant à payer">
                                         </td>
                                     </tr>-->
+                                    $trselectecheance
                                     <tr class="field_ref">
                                         <td>Montant total $modepaiementinput</td>
                                         <td class="valuefieldcreate">
@@ -441,8 +477,8 @@ class OperationProduit
                                     <tr class="field_ref">
                                         <td>Monnaie</td>
                                         <td class="valuefieldcreate">
-                                            <input id="monnaie" type="number" class="flat minwidth400 --success" value="$resteapayer" disabled>
-                                            <input id="monnaie-hidden" type="hidden" class="flat minwidth400 --success" value="$resteapayer" name="monnaie">
+                                            <input id="monnaie" type="number" class="flat minwidth400 --success" value="0" disabled>
+                                            <input id="monnaie-hidden" type="hidden" class="flat minwidth400 --success" value="0" name="monnaie">
                                         </td>
                                     </tr>
                                 </tbody>
@@ -617,62 +653,75 @@ class OperationProduit
             $serveur = $_SERVER['PHP_SELF'];
             $newToken = newToken();
             $addclient = <<<EOD
-            <form id="formselectclient" method="POST" action="save_client.php">
-                <input hidden name="action" value="selectclient" />
-                <input hidden name="token" value="$newToken" />
-                <input hidden name="id" value="$object->id" />
-                <input hidden name="backpage" value="$serveur" />
-                <table class="border tableforfieldcreate">
-                    <tbody>
-                        <tr id="selectclient" class="field_ref">
-                            <td>Client</td>
-                            <td class="valuefieldcreate">
-                                <select required class="selectclient" name="selectclient">
-                                    <option></option>
-                                    $clientliste
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><button class="butAction" style="margin-left:0px;">Enregistrer</button></td>
-                            <td><button id="toggleaddclient" class="butAction" style="margin-left:5px;">Ajouter</button></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </form>
-
-            <form id="formaddclient" method="POST" action="save_client.php">
-                <input hidden name="action" value="addclient" />
-                <input hidden name="token" value="$newToken" />
-                <input hidden name="id" value="$object->id" />
-                <input hidden name="backpage" value="$serveur" />
-                <table class="border tableforfieldcreate">
-                    <tbody>
-                        <tr class="addclient field_ref">
-                            <td>Nom Client</td>
-                            <td class="valuefieldcreate">
-                                <input required class="flat minwidth400 --success" value="" name="nom_client" id="nom_client" placeholder="Saisir le nom">
-                            </td>
-                        </tr>
-                        <tr class="addclient field_ref">
-                            <td>Téléphone</td>
-                            <td class="valuefieldcreate">
-                                <input class="flat minwidth400 --success" value="" name="telephone_client" id="telephone_client" placeholder="Saisir le téléphone">
-                            </td>
-                        </tr>
-                        <tr class="addclient field_ref">
-                            <td>NIP de la CNIB</td>
-                            <td class="valuefieldcreate">
-                                <input class="flat minwidth400 --success" value="" name="nip_cnib" id="nip_cnib" placeholder="Saisir le NIP">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><button class="butAction" style="margin-left:0px;">Enregistrer</button></td>
-                            <td><button id="toggleselectclient" class="butAction" style="margin-left:5px;">Sélection</button></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </form>
+            <div id="div-client" class="card" style="width: 80%; padding: 30px; margin: 30px;">
+            
+                <div id="message_client_obligatoire" class="hidden" style="margin: 10px; color: red;">
+                    Veuillez enregistrer les informations du client avant de poursuivre les opérations
+                </div>
+                
+                <form id="formselectclient" method="POST" action="save_client.php">
+                    <input hidden name="action" value="selectclient" />
+                    <input hidden name="suite_echeance" value="echeance" />
+                    <input hidden name="token" value="$newToken" />
+                    <input hidden name="id" value="$object->id" />
+                    <input hidden name="backpage" value="$serveur" />
+                    <table class="border tableforfieldcreate">
+                        <tbody>
+                            <tr id="selectclient" class="field_ref">
+                                <td>Client</td>
+                                <td class="valuefieldcreate">
+                                    <select required class="selectclient" name="selectclient">
+                                        <option></option>
+                                        $clientliste
+                                    </select>
+                                </td>
+                            </tr>
+                            <!--<tr>
+                                <td><button class="butAction" style="margin-left:0px;">Enregistrer</button></td>
+                                <td><button id="toggleaddclient" class="butAction" style="margin-left:5px;">Ajouter</button></td>
+                            </tr>-->
+                        </tbody>
+                    </table>
+                    <button class="butAction" style="margin-left:0px;">Enregistrer</button>
+                    <button id="toggleaddclient" class="butAction" style="margin-left:5px;">Ajouter</button>
+                </form>
+                
+                <form id="formaddclient" method="POST" action="save_client.php">
+                    <input hidden name="action" value="addclient" />
+                    <input hidden name="suite_echeance" value="echeance" />
+                    <input hidden name="token" value="$newToken" />
+                    <input hidden name="id" value="$object->id" />
+                    <input hidden name="backpage" value="$serveur" />
+                    <table class="border tableforfieldcreate">
+                        <tbody>
+                            <tr class="addclient field_ref">
+                                <td>Nom Client</td>
+                                <td class="valuefieldcreate">
+                                    <input required class="flat minwidth400 --success" value="" name="nom_client" id="nom_client" placeholder="Saisir le nom">
+                                </td>
+                            </tr>
+                            <tr class="addclient field_ref">
+                                <td>Téléphone</td>
+                                <td class="valuefieldcreate">
+                                    <input class="flat minwidth400 --success" value="" name="telephone_client" id="telephone_client" placeholder="Saisir le téléphone">
+                                </td>
+                            </tr>
+                            <tr class="addclient hidden field_ref">
+                                <td>NIP de la CNIB</td>
+                                <td class="valuefieldcreate">
+                                    <input class="flat minwidth400 --success" value="" name="nip_cnib" id="nip_cnib" placeholder="Saisir le NIP">
+                                </td>
+                            </tr>
+                            <!--<tr>
+                                <td><button class="butAction" style="margin-left:0px;">Enregistrer</button></td>
+                                <td><button id="toggleselectclient" class="butAction" style="margin-left:5px;">Sélection</button></td>
+                            </tr>-->
+                        </tbody>
+                    </table>
+                    <button class="butAction" style="margin-left:0px;">Enregistrer</button>
+                    <button id="toggleselectclient" class="butAction" style="margin-left:5px;">Sélection</button>
+                </form>
+            </div>
             EOD;
 
             print $addclient;
@@ -680,6 +729,11 @@ class OperationProduit
             $javascript = <<<EOD
                 <script>
                     var index = $i;
+                    $("#form_save_echeance").hide(0);
+                    $("#message-echeancier").hide(0);
+                    $("#div-client").hide(0);
+                    $("#message-total-echeance").hide(0);
+                    $("#nbupdateecheance").val($indexecheance);
 
                     function checkClient() {
                         var client_id = $client_id;
@@ -836,10 +890,19 @@ class OperationProduit
                                 $("#montantpaye").val("$resteapayer");
 
                                 $("#message_client_obligatoire").addClass("hidden");
-                                $("#payer_facture").attr("disabled", false);
+                                // $("#payer_facture").attr("disabled", false);
+                                $("#message_client_obligatoire").removeClass("hidden");
+                                $("#payer_facture").attr("disabled", true);
+                                $("#save_paiement").hide(500);
+                                $("#form_save_echeance").hide(500);
+                                $("#message-echeancier").show(500);
                             } else {
                                 $("#message_client_obligatoire").removeClass("hidden");
                                 $("#payer_facture").attr("disabled", true);
+                                $("#save_paiement").hide(500);
+                                $("#form_save_echeance").hide(500);
+                                $("#message-echeancier").hide(0);
+                                $("#div-client").show(500);
                             }
                         } else {
                             $(".input-credit").addClass("hidden");
@@ -866,16 +929,86 @@ class OperationProduit
                     $("#add_echeance").click(event => {
                         event.preventDefault();
                         $("#echeance_body").append(`
-                            <tr class="field_ref">
+                            <tr id="delete_add_echeance_\${indexecheance}" class="field_ref">
                                 <td>
-                                    <input type="date" class="flat minwidth400 --success" value="" name="dateecheance_\${indexecheance}">
+                                    <input type="date" class="flat minwidth400 --success input-date-echeance" value="" name="dateecheance_\${indexecheance}">
                                 </td>
                                 <td>
-                                    <input type="number" class="flat minwidth400 --success" value="" name="montantecheance_\${indexecheance}">
+                                    <input type="number" class="flat minwidth400 --success input-montant-echeance" value="" name="montantecheance_\${indexecheance}">
+                                </td>
+                                <td>
+                                    <span id="btndelete_add_echeance_\${indexecheance}" data-index="\$indexecheance" class="delete_add_echeance flat butAction">Supprimer</span>
                                 </td>
                             </tr>
                         `);
                         indexecheance++;
+
+                        $(".delete_add_echeance").click(event => {
+                            let _index = event.currentTarget.id.split('_')[3];
+                            console.log("delete add echeance", event.currentTarget.id, event.currentTarget.id.split('_')[3]);
+                            event.preventDefault();
+                            $("#delete_add_echeance_"+_index).hide();
+                            $("input[name='montantecheance_"+_index+"']").val("");
+                            $("input[name='dateecheance_"+_index+"']").val("");
+                        });
+                    });
+
+                    $("#btn_add_echeancier").click(event => {
+                        $("#message-echeancier").hide(0);
+                        $("#form_save_echeance").show(500);
+                    });
+
+                    $("#btn_credit_directe, #annuler_echeance").click(event => {
+                        event.preventDefault();
+                        $("#message-echeancier").hide(0);
+                        $("#form_save_echeance").hide(0);
+
+                        $(".input-credit").removeClass("hidden");
+                        $("#montantpaye").attr("disabled", false);
+                        $("#montantpaye").addClass("hidden");
+                        $("#montantpayecredit").attr("type", "number");
+                        $("#montantpayecredit").attr("disabled", false);
+                        console.log("reste à payer", "$format_resteapayer");
+                        $("#reste-a-payer").val("$format_resteapayer");
+                        $("#montantpaye").val("$resteapayer");
+
+                        $("#message_client_obligatoire").addClass("hidden");
+                        $("#payer_facture").attr("disabled", false);
+                        $("#save_paiement").show(500);
+                    });
+
+                    $("#continuer_echeance").click(event => {
+                        event.preventDefault();
+                        $(".input-credit").removeClass("hidden");
+                        $("#message-echeancier").hide(0);
+                        $("#form_save_echeance").hide(0);
+                        $("#payer_facture").attr("disabled", false);
+                        $("#save_paiement").show(500);
+                        $("#montantpaye, #montantpayecredit").val($("#selectecheance").val());
+                        $("#montantpayecredit").attr("type", "hidden");
+                        $("#montantpaye").removeClass("hidden");
+                        $("#montantpaye").attr("disabled", true);
+                    });
+
+                    $("#selectecheance").change(event => {
+                        $("#montantpaye, #montantpayecredit").val($("#selectecheance").val());
+                    });
+
+                    $(".input-montant-echeance").keyup(event => {
+                        let montantpaye = $resteapayer;
+                        let totalvalue = 0;
+                        $(".input-montant-echeance").each(function() {
+                            totalvalue += this.value && this.value!="" ? Number.parseInt(this.value) : 0;
+                        });
+                        console.log("Montant echeance keyup", montantpaye, totalvalue);
+
+                        if(totalvalue > montantpaye) {
+                            $("#message-total-echeance").show(500);
+                            $("#save_echeance").hide(0);
+                        } else {
+                            $("#message-total-echeance").hide(0);
+                            $("#save_echeance").show(500);
+                        }
                     });
 
                     // $("#save_echeance").click(event => {
@@ -887,6 +1020,36 @@ class OperationProduit
                     eventChange();
                 </script>
             EOD;
+            
+            if($save_echeance != null && $save_echeance == "echeance") {
+                $javascriptecheance = <<<EOD
+                    <script>
+                        $(() => {
+                            $("#message_client_obligatoire").removeClass("hidden");
+                            $("#payer_facture").attr("disabled", true);
+                            $("#save_paiement").hide(500);
+                            $("#form_save_echeance").hide(500);
+                            $("#div-client").hide(0);
+                            $("#message-echeancier").show(500);
+                        });
+                    </script>
+                EOD;
+                $javascript .= $javascriptecheance;
+            } else if($save_echeance != null && $save_echeance == "enregistrement") {
+                $javascriptecheance = <<<EOD
+                    <script>
+                        $(() => {
+                            $("#message_client_obligatoire").removeClass("hidden");
+                            $("#payer_facture").attr("disabled", true);
+                            $("#save_paiement").hide(0);
+                            $("#form_save_echeance").show(500);
+                            $("#div-client").hide(0);
+                            $("#message-echeancier").hide(0);
+                        });
+                    </script>
+                EOD;
+                $javascript .= $javascriptecheance;
+            }
             print $javascript;
         }
     }

@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS " . MAIN_DB_PREFIX . "paiementoperation (
+CREATE TABLE IF NOT EXISTS llx_paiementoperation (
     rowid INTEGER PRIMARY KEY AUTO_INCREMENT,
     ref VARCHAR(30) NOT NULL,             -- Référence du paiement
     amount DOUBLE NOT NULL,               -- Montant du paiement
@@ -11,5 +11,5 @@ CREATE TABLE IF NOT EXISTS " . MAIN_DB_PREFIX . "paiementoperation (
     mode_paiement VARCHAR(90),
     sommeversee INTEGER,                  -- Somme versée
     monnaie INTEGER,                      -- Monnaie
-    remise INTEGER,                       -- Statut du paiement
+    remise INTEGER                        -- Statut du paiement
 ) ENGINE=innodb;
